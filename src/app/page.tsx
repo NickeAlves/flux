@@ -8,12 +8,9 @@ export default function Home() {
       <Header />
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Welcome to{" "}
-            <strong className="text-[var(--red-button)]">Flux</strong>
-          </h1>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            All-in-one. All in Flux.
+          <p className="text-3xl mb-8 mx-auto text-gray-900 font-medium">
+            All-in-one. <br />
+            All in <strong className="text-[var(--red-button)]">flux</strong>.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -22,7 +19,7 @@ export default function Home() {
             >
               Get Started
             </Link>
-            <button className="border border-gray-300 px-8 py-3 rounded-lg hover:bg-white/15 transition-colors">
+            <button className="border border-gray-300 text-black text-xs sm:text-sm lg:text-base px-8 py-3 rounded-lg bg-white hover:bg-white/15 transition-colors">
               Learn More
             </button>
           </div>

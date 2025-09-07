@@ -150,3 +150,57 @@ body {
   color: var(--words-colors-pattern);
   font-family: "Poppins", Arial, Helvetica, sans-serif;
 }
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  25% {
+    transform: translate(50px, -80px) scale(1.2);
+  }
+  50% {
+    transform: translate(-30px, 40px) scale(0.8);
+  }
+  75% {
+    transform: translate(40px, 60px) scale(1.1);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes blob-large {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  25% {
+    transform: translate(100px, -120px) scale(1.3);
+  }
+  50% {
+    transform: translate(-60px, 80px) scale(0.7);
+  }
+  75% {
+    transform: translate(80px, 100px) scale(1.2);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 8s infinite ease-in-out;
+}
+
+@media (min-width: 1024px) {
+  .animate-blob {
+    animation: blob-large 10s infinite ease-in-out;
+  }
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
