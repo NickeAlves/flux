@@ -24,16 +24,16 @@ export default function Header() {
             Home
           </Link>
           <Link
-            href="#"
+            href="#about"
             className="text-black text-xs sm:text-sm lg:text-base hover:text-gray-500 transition-colors"
           >
             About
           </Link>
           <Link
-            href="#"
+            href="#features"
             className="text-black text-xs sm:text-sm lg:text-base hover:text-gray-500 transition-colors"
           >
-            Contact
+            Features
           </Link>
         </nav>
         <div className="flex items-center">

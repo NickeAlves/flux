@@ -24,10 +24,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/assets/flux.png" />
+        <style>{`
+    link[rel="icon"] {
+      border-radius: 50%;
+    }
+  `}</style>
+      </head>
+
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased relative overflow-hidden`}
       >
-        {/* Animated Background */}
         <div className="fixed inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100"></div>
           <div className="absolute top-0 -left-4 w-72 h-72 sm:w-96 sm:h-96 lg:w-[500px] lg:h-[500px] bg-[var(--red-button)] rounded-full mix-blend-multiply filter blur-xl opacity-30 sm:opacity-25 lg:opacity-20 animate-blob"></div>
