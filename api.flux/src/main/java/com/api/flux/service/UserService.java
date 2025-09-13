@@ -1,13 +1,13 @@
 package com.api.flux.service;
 
 import com.api.flux.dto.request.user.UpdateUserRequestDTO;
-import com.api.flux.dto.response.user.DataUserDTO;
-import com.api.flux.dto.response.user.PaginatedUserResponseDTO;
-import com.api.flux.dto.response.user.ResponseUserDTO;
-import com.api.flux.dto.response.user.UpdateUserResponseDTO;
+import com.api.flux.dto.response.user.*;
 import com.api.flux.entity.User;
+import com.api.flux.mapper.UserMapper;
 import com.api.flux.repository.UserRepository;
 import com.api.flux.security.TokenService;
+import com.api.flux.utils.TextUtils;
+import com.api.flux.utils.ValidationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 @Service
 public class UserService {
@@ -38,41 +37,10 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-    );
-
-    public static String capitalizeFirstLetters(String input) {
-        if (input == null || input.isEmpty()) return input;
-
-        String[] words = input.trim().split("\\s+");
-        StringBuilder result = new StringBuilder();
-
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                result.append(Character.toUpperCase(word.charAt(0)));
-                if (word.length() > 1) {
-                    result.append(word.substring(1).toLowerCase());
-                }
-                result.append(" ");
-            }
-        }
-        return result.toString().trim();
-    }
-
-    private int calculateAge(User user) {
+    public static int calculateAge(User user) {
         LocalDate userDateOfBirth = user.getDateOfBirth();
 
         return Period.between(userDateOfBirth, LocalDate.now()).getYears();
-    }
-
-    private DataUserDTO createUserData(User user) {
-        return new DataUserDTO(user.getId(),
-                user.getName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getDateOfBirth(),
-                calculateAge(user));
     }
 
     public ResponseEntity<PaginatedUserResponseDTO<DataUserDTO>> listUsersPaginated(int page, int size, String sortBy, String sortDirection) {
@@ -122,7 +90,8 @@ public class UserService {
             }
 
             User user = optionalUser.get();
-            DataUserDTO userDTO = createUserData(user);
+            int userAge = calculateAge(user);
+            DataUserDTO userDTO = UserMapper.toDto(user, userAge);
 
             logger.info("User found with ID: {}", id);
             return ResponseEntity.ok().body(ResponseUserDTO.success("User found by ID.", userDTO));
@@ -139,7 +108,7 @@ public class UserService {
         try {
             String adjustedEmail = email.trim().toLowerCase();
 
-            if (!EMAIL_PATTERN.matcher(adjustedEmail).matches()) {
+            if (ValidationUtils.isValidEmail(adjustedEmail)) {
                 return ResponseEntity.badRequest()
                         .body(ResponseUserDTO.notFound("Invalid email format"));
             }
@@ -153,7 +122,8 @@ public class UserService {
             }
 
             User user = optionalUser.get();
-            DataUserDTO userDTO = createUserData(user);
+            int userAge = calculateAge(user);
+            DataUserDTO userDTO = UserMapper.toDto(user, userAge);
 
             logger.info("User found with email: {}", email);
             return ResponseEntity.ok()
@@ -178,17 +148,17 @@ public class UserService {
             User existingUser = optionalUser.get();
 
             if (dto.name() != null && !dto.name().trim().isEmpty()) {
-                existingUser.setName(capitalizeFirstLetters(dto.name()));
+                existingUser.setName(TextUtils.capitalizeFirstLetters(dto.name()));
             }
 
             if (dto.lastName() != null && !dto.lastName().trim().isEmpty()) {
-                existingUser.setLastName(capitalizeFirstLetters(dto.lastName()));
+                existingUser.setLastName(TextUtils.capitalizeFirstLetters(dto.lastName()));
             }
 
             if (dto.email() != null && !dto.email().trim().isEmpty()) {
                 String newEmail = dto.email().trim().toLowerCase();
 
-                if (!EMAIL_PATTERN.matcher(newEmail).matches()) {
+                if (ValidationUtils.isValidEmail(newEmail)) {
                     logger.warn("Invalid email format. Email: {}", dto.email());
                     return ResponseEntity.badRequest()
                             .body(UpdateUserResponseDTO.error("Invalid email format."));
@@ -218,7 +188,8 @@ public class UserService {
                 existingUser.setPassword(newPassword);
             }
             User updatedUser = userRepository.save(existingUser);
-            DataUserDTO dataUserDTO = createUserData(updatedUser);
+            int age = calculateAge(optionalUser.get());
+            DataUserDTO dataUserDTO = UserMapper.toDto(updatedUser, age);
             String newToken = tokenService.generateToken(updatedUser);
 
             logger.info("User updated successfully.");
@@ -232,6 +203,25 @@ public class UserService {
             logger.error("Unexpected error during user update: ", exception);
             return ResponseEntity.internalServerError()
                     .body(UpdateUserResponseDTO.error("An unexpected error occurred during update"));
+        }
+    }
+
+    public ResponseEntity<DeleteUserResponseDTO> deleteUserById(UUID id) {
+        try {
+            if (!userRepository.existsById(id)) {
+                logger.warn("Delete attempt for non-existent user with ID: {}", id);
+                return ResponseEntity.status(404)
+                        .body(DeleteUserResponseDTO.notFound("User not found"));
+            }
+
+            userRepository.deleteById(id);
+            logger.info("User deleted  successfully with ID {}.", id);
+            return ResponseEntity.ok()
+                    .body(DeleteUserResponseDTO.success("User deleted successfully."));
+        } catch (Exception exception) {
+            logger.error("Unexpected error during user deletion: ", exception);
+            return ResponseEntity.internalServerError()
+                    .body(DeleteUserResponseDTO.error("An unexpected error occurred during deletion"));
         }
     }
 }

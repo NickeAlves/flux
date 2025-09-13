@@ -1,10 +1,7 @@
 package com.api.flux.controller;
 
 import com.api.flux.dto.request.user.UpdateUserRequestDTO;
-import com.api.flux.dto.response.user.DataUserDTO;
-import com.api.flux.dto.response.user.PaginatedUserResponseDTO;
-import com.api.flux.dto.response.user.ResponseUserDTO;
-import com.api.flux.dto.response.user.UpdateUserResponseDTO;
+import com.api.flux.dto.response.user.*;
 import com.api.flux.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -43,5 +40,10 @@ public class UserController {
     public ResponseEntity<UpdateUserResponseDTO> updateUser(@PathVariable UUID id,
                                                             @Valid @RequestBody UpdateUserRequestDTO dto) {
         return userService.updateUser(id, dto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<DeleteUserResponseDTO> deleteUserById(@PathVariable UUID id) {
+        return userService.deleteUserById(id);
     }
 }

@@ -2,6 +2,7 @@ package com.api.flux.dto.response.user;
 
 import org.springframework.data.domain.Page;
 
+import java.time.Instant;
 import java.util.List;
 
 public record PaginatedUserResponseDTO<T>(
@@ -26,7 +27,7 @@ public record PaginatedUserResponseDTO<T>(
                         page.hasNext(),
                         page.hasPrevious()
                 ),
-                java.time.Instant.now().toString()
+                Instant.now().toString()
         );
     }
 
@@ -36,7 +37,7 @@ public record PaginatedUserResponseDTO<T>(
                 message,
                 null,
                 null,
-                java.time.Instant.now().toString()
+                Instant.now().toString()
         );
     }
 }

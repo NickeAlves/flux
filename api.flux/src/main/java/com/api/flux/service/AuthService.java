@@ -7,8 +7,11 @@ import com.api.flux.dto.response.auth.LogoutAuthResponseDTO;
 import com.api.flux.dto.response.auth.RegisterAuthResponseDTO;
 import com.api.flux.dto.response.user.DataUserDTO;
 import com.api.flux.entity.User;
+import com.api.flux.mapper.UserMapper;
 import com.api.flux.repository.UserRepository;
 import com.api.flux.security.TokenService;
+import com.api.flux.utils.TextUtils;
+import com.api.flux.utils.ValidationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -16,18 +19,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Service
 public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
-
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-    );
 
     private final UserRepository userRepository;
     private final TokenService tokenService;
@@ -39,45 +35,12 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public static String capitalizeFirstLetters(String input) {
-        if (input == null || input.isEmpty()) return input;
-
-        String[] words = input.trim().split("\\s+");
-        StringBuilder result = new StringBuilder();
-
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                result.append(Character.toUpperCase(word.charAt(0)));
-                if (word.length() > 1) {
-                    result.append(word.substring(1).toLowerCase());
-                }
-                result.append(" ");
-            }
-        }
-        return result.toString().trim();
-    }
-
-    private int calculateAge(User user) {
-        LocalDate userDateOfBirth = user.getDateOfBirth();
-
-        return Period.between(userDateOfBirth, LocalDate.now()).getYears();
-    }
-
-    private DataUserDTO createUserData(User user) {
-        return new DataUserDTO(user.getId(),
-                user.getName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getDateOfBirth(),
-                calculateAge(user));
-    }
-
     @Transactional
     public ResponseEntity<RegisterAuthResponseDTO> register(RegisterAuthRequestDTO dto) {
         try {
             String email = dto.email().trim().toLowerCase();
 
-            if (!EMAIL_PATTERN.matcher(email).matches()) {
+            if (ValidationUtils.isValidEmail(email)) {
                 return ResponseEntity.badRequest()
                         .body(RegisterAuthResponseDTO.error("Invalid email format."));
             }
@@ -90,15 +53,16 @@ public class AuthService {
 
             User user = new User();
             user.generateId();
-            user.setName(capitalizeFirstLetters(dto.name()));
-            user.setLastName(capitalizeFirstLetters(dto.lastName()));
+            user.setName(TextUtils.capitalizeFirstLetters(dto.name()));
+            user.setLastName(TextUtils.capitalizeFirstLetters(dto.lastName()));
             user.setDateOfBirth(dto.dateOfBirth());
             user.setEmail(email);
             user.setPassword(passwordEncoder.encode(dto.password()));
 
             User savedUser = userRepository.save(user);
+            int age = UserService.calculateAge(savedUser);
             String token = tokenService.generateToken(savedUser);
-            DataUserDTO dataUserDTO = createUserData(savedUser);
+            DataUserDTO dataUserDTO = UserMapper.toDto(savedUser, age);
 
             logger.info("User registered successfully with email: {}", email);
             return ResponseEntity.status(201)
@@ -128,7 +92,7 @@ public class AuthService {
 
             String email = dto.email().trim().toLowerCase();
 
-            if (!EMAIL_PATTERN.matcher(email).matches()) {
+            if (ValidationUtils.isValidEmail(email)) {
                 return ResponseEntity.badRequest()
                         .body(LoginAuthResponseDTO.error("Invalid email format"));
             }
@@ -150,7 +114,8 @@ public class AuthService {
             }
 
             String token = tokenService.generateToken(user);
-            DataUserDTO userData = createUserData(user);
+            int age = UserService.calculateAge(user);
+            DataUserDTO userData = UserMapper.toDto(user, age);
 
             logger.info("User logged in successfully with email: {}", email);
             return ResponseEntity.ok()
