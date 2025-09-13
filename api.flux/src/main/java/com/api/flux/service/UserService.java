@@ -1,10 +1,13 @@
 package com.api.flux.service;
 
+import com.api.flux.dto.request.user.UpdateUserRequestDTO;
 import com.api.flux.dto.response.user.DataUserDTO;
 import com.api.flux.dto.response.user.PaginatedUserResponseDTO;
 import com.api.flux.dto.response.user.ResponseUserDTO;
+import com.api.flux.dto.response.user.UpdateUserResponseDTO;
 import com.api.flux.entity.User;
 import com.api.flux.repository.UserRepository;
+import com.api.flux.security.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,14 +28,36 @@ import java.util.regex.Pattern;
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
+    private final UserRepository userRepository;
+    private final TokenService tokenService;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository, TokenService tokenService, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.tokenService = tokenService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
     );
 
-    private final UserRepository userRepository;
+    public static String capitalizeFirstLetters(String input) {
+        if (input == null || input.isEmpty()) return input;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+        String[] words = input.trim().split("\\s+");
+        StringBuilder result = new StringBuilder();
+
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                result.append(Character.toUpperCase(word.charAt(0)));
+                if (word.length() > 1) {
+                    result.append(word.substring(1).toLowerCase());
+                }
+                result.append(" ");
+            }
+        }
+        return result.toString().trim();
     }
 
     private int calculateAge(User user) {
@@ -113,7 +139,7 @@ public class UserService {
         try {
             String adjustedEmail = email.trim().toLowerCase();
 
-            if (!EMAIL_PATTERN.matcher(adjustedEmail).matches()){
+            if (!EMAIL_PATTERN.matcher(adjustedEmail).matches()) {
                 return ResponseEntity.badRequest()
                         .body(ResponseUserDTO.notFound("Invalid email format"));
             }
@@ -139,4 +165,73 @@ public class UserService {
         }
     }
 
+    public ResponseEntity<UpdateUserResponseDTO> updateUser(UUID id, UpdateUserRequestDTO dto) {
+        try {
+            Optional<User> optionalUser = userRepository.findById(id);
+
+            if (optionalUser.isEmpty()) {
+                logger.warn("User not found with ID: {}", id);
+                return ResponseEntity.status(404)
+                        .body(UpdateUserResponseDTO.notFound("User not found."));
+            }
+
+            User existingUser = optionalUser.get();
+
+            if (dto.name() != null && !dto.name().trim().isEmpty()) {
+                existingUser.setName(capitalizeFirstLetters(dto.name()));
+            }
+
+            if (dto.lastName() != null && !dto.lastName().trim().isEmpty()) {
+                existingUser.setLastName(capitalizeFirstLetters(dto.lastName()));
+            }
+
+            if (dto.email() != null && !dto.email().trim().isEmpty()) {
+                String newEmail = dto.email().trim().toLowerCase();
+
+                if (!EMAIL_PATTERN.matcher(newEmail).matches()) {
+                    logger.warn("Invalid email format. Email: {}", dto.email());
+                    return ResponseEntity.badRequest()
+                            .body(UpdateUserResponseDTO.error("Invalid email format."));
+                }
+
+                if (newEmail.equals(existingUser.getEmail())) {
+                    logger.warn("New email: {},  must be different from current email.", dto.email());
+                    return ResponseEntity.status(409)
+                            .body(UpdateUserResponseDTO.error("New email must be different from current email."));
+                }
+
+                if (userRepository.existsByEmail(newEmail)) {
+                    logger.warn("Email {} already in use.", dto.email());
+                    return ResponseEntity.status(409)
+                            .body(UpdateUserResponseDTO.error("Email already in use."));
+                }
+                existingUser.setEmail(newEmail);
+            }
+
+            if (dto.password() != null && !dto.password().trim().isEmpty()) {
+                if (passwordEncoder.matches(dto.password(), existingUser.getPassword())) {
+                    return ResponseEntity.badRequest()
+                            .body(UpdateUserResponseDTO.error("Please, insert a different password."));
+                }
+
+                String newPassword = passwordEncoder.encode(dto.password());
+                existingUser.setPassword(newPassword);
+            }
+            User updatedUser = userRepository.save(existingUser);
+            DataUserDTO dataUserDTO = createUserData(updatedUser);
+            String newToken = tokenService.generateToken(updatedUser);
+
+            logger.info("User updated successfully.");
+            return ResponseEntity.ok()
+                    .body(UpdateUserResponseDTO.success("User updated successfully", dataUserDTO, newToken));
+        } catch (IllegalArgumentException illegalArgumentException) {
+            logger.warn("Update validation failed: {}", illegalArgumentException.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(UpdateUserResponseDTO.error(illegalArgumentException.getMessage()));
+        } catch (Exception exception) {
+            logger.error("Unexpected error during user update: ", exception);
+            return ResponseEntity.internalServerError()
+                    .body(UpdateUserResponseDTO.error("An unexpected error occurred during update"));
+        }
+    }
 }
