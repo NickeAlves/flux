@@ -1,116 +1,160 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import LogoButton from "./LogoButton";
-import MenuItem from "./MenuItem";
-import ProfileButton from "./ProfileButton";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-type DashboardMenuProps = {
-  onSelectAction: (key: string) => void;
-};
+export default function DashboardMenu() {
+  const currentPath = usePathname();
 
-export default function DashboardMenu({ onSelectAction }: DashboardMenuProps) {
-  const router = useRouter();
+  const isActive = (path: string) => currentPath === path;
 
-  const menuItems = [
+  const navItems = [
     {
-      key: "google_calendar",
-      icon: () => (
-        <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg"
-          alt="Google Calendar"
-          width={20}
-          height={20}
-          className="h-5 w-5"
-        />
-      ),
+      href: "/dashboard",
+      src: "https://www.svgrepo.com/show/459911/dashboard.svg",
+      alt: "dashboard-image",
+      className:
+        "w-5 sm:w-6 invert transition-all duration-300 ease-in-out hover:invert-0",
     },
     {
-      key: "apple_calendar",
-      icon: () => (
-        <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Apple_Calendar_%28iOS%29.svg"
-          alt="Apple Calendar"
-          width={20}
-          height={20}
-          className="h-5 w-5"
-        />
-      ),
+      href: "/google-calendar",
+      src: "https://www.svgrepo.com/show/353803/google-calendar.svg",
+      alt: "google-calendar-image",
+      className: "w-5 sm:w-6",
     },
     {
-      key: "instagram",
-      icon: () => (
-        <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg"
-          alt="Instagram"
-          width={20}
-          height={20}
-          className="h-5 w-5"
-        />
-      ),
+      href: "/instagram",
+      src: "https://www.svgrepo.com/show/521711/instagram.svg",
+      alt: "instagram-image",
+      className:
+        "w-5 sm:w-6 invert transition-all duration-300 ease-in-out hover:invert-0",
     },
     {
-      key: "facebook",
-      icon: () => (
-        <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Facebook_icon.svg"
-          alt="Facebook"
-          width={20}
-          height={20}
-          className="h-5 w-5"
-        />
-      ),
+      href: "/facebook",
+      src: "https://www.svgrepo.com/show/503338/facebook.svg",
+      alt: "facebook-image",
+      className:
+        "w-5 sm:w-6 invert transition-all duration-300 ease-in-out hover:invert-0",
     },
     {
-      key: "whatsapp",
-      icon: () => (
-        <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-          alt="WhatsApp"
-          width={20}
-          height={20}
-          className="h-5 w-5"
-        />
-      ),
+      href: "/whatsapp",
+      src: "https://www.svgrepo.com/show/513060/whatsapp-128.svg",
+      alt: "whatsapp-image",
+      className:
+        "w-4 sm:w-5 invert transition-all duration-300 ease-in-out hover:invert-0",
     },
     {
-      key: "chatgpt",
-      icon: () => (
-        <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg"
-          alt="ChatGPT"
-          width={20}
-          height={20}
-          className="h-5 w-5"
-        />
-      ),
+      href: "/gemini",
+      src: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg",
+      alt: "gemini-image",
+      className:
+        "w-4 sm:w-5 transition-all duration-300 ease-in-out hover:invert-0",
     },
-    { key: "notes", icon: () => <span className="text-lg">📝</span> },
-    { key: "calculator", icon: () => <span className="text-lg">🧮</span> },
+    {
+      href: "/notes",
+      src: "https://www.svgrepo.com/show/522208/note-text.svg",
+      alt: "note-image",
+      className:
+        "w-4 sm:w-5 invert transition-all duration-300 ease-in-out hover:invert-0",
+    },
+    {
+      href: "/calculator",
+      src: "https://www.svgrepo.com/show/504193/calculator-plus.svg",
+      alt: "calculator-image",
+      className:
+        "w-4 sm:w-5 invert transition-all duration-300 ease-in-out hover:invert-0",
+    },
   ];
 
   return (
-    <aside className="flex lg:flex-col items-center justify-between lg:justify-start h-16 lg:h-screen w-full lg:w-20 bg-white border-t lg:border-t-0 lg:border-r border-gray-200 p-2 lg:p-4 fixed bottom-0 lg:static z-50">
-      <div className="flex flex-col mb-6 gap-2">
-        <LogoButton onClick={() => onSelectAction("dashboard")} />
-        <div className="flex justify-center text-black/30 border-b-1" />
-      </div>
-
-      <nav className="flex flex-row lg:flex-col items-center justify-evenly w-full lg:w-auto space-x-1 sm:space-x-2 md:space-x-4 lg:space-x-0 lg:space-y-3 text-sm">
-        {menuItems.map((item) => (
-          <MenuItem
-            key={item.key}
-            icon={item.icon}
-            onClick={() => onSelectAction(item.key)}
+    <header className="w-full max-w-6xl mx-auto px-2 sm:px-4 py-3">
+      <div className="flex items-center justify-between">
+        <Link href="/dashboard">
+          <Image
+            src="/assets/flux-logo.png"
+            alt="Flux"
+            width={200}
+            height={200}
+            className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity invert"
           />
-        ))}
-      </nav>
+        </Link>
 
-      <div className="flex flex-col gap-2 mt-12 mb-6">
-        <div className="flex justify-center text-black/30 border-b-1" />
-        <ProfileButton onClick={() => router.push("/profile")} />
+        <nav className="hidden sm:flex items-center gap-2 md:gap-4 p-1 px-3 md:px-4 justify-center rounded-full bg-black">
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`rounded-full px-2 py-1 transition-all duration-300 ease-in-out hover:bg-white hover:text-black hover:shadow-md hover:scale-110 ${
+                  active ? "bg-white text-black shadow-md" : ""
+                }`}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  width={200}
+                  height={200}
+                  className={
+                    active
+                      ? item.className
+                          .replace("invert", "")
+                          .replace("hover:invert-0", "")
+                      : item.className
+                  }
+                />
+              </Link>
+            );
+          })}
+        </nav>
+
+        <nav className="sm:hidden flex items-center gap-1 p-1 px-2 justify-center rounded-full bg-black overflow-x-auto max-w-[60vw]">
+          {navItems.slice(0, 5).map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`rounded-full px-1.5 py-1 transition-all duration-300 ease-in-out hover:bg-white hover:text-black hover:shadow-md flex-shrink-0 ${
+                  active ? "bg-white text-black shadow-md" : ""
+                }`}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  width={200}
+                  height={200}
+                  className={
+                    active
+                      ? item.className
+                          .replace("invert", "")
+                          .replace("hover:invert-0", "")
+                      : item.className
+                  }
+                />
+              </Link>
+            );
+          })}
+        </nav>
+
+        <Link
+          href="/profile"
+          className={`w-8 sm:w-10 rounded-full transition-all duration-300 ease-in-out hover:bg-black hover:text-white hover:shadow-md hover:scale-110 ${
+            isActive("/profile")
+              ? "bg-black text-white shadow-md scale-110"
+              : ""
+          }`}
+        >
+          <Image
+            src="https://www.svgrepo.com/show/486506/user-profile-filled.svg"
+            alt="profile"
+            width={200}
+            height={200}
+            className={`w-8 sm:w-10 transition-all duration-300 ease-in-out ${
+              isActive("/profile") ? "invert" : "hover:invert"
+            }`}
+          />
+        </Link>
       </div>
-    </aside>
+    </header>
   );
 }

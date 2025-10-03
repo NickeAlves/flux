@@ -4,6 +4,7 @@ import com.api.flux.dto.request.user.UpdateUserRequestDTO;
 import com.api.flux.dto.response.user.*;
 import com.api.flux.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,11 +13,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    @Autowired
+    private UserService userService;
 
     @GetMapping
     public ResponseEntity<PaginatedUserResponseDTO<DataUserDTO>> listAllUsers(@RequestParam(defaultValue = "0") int page,

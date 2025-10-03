@@ -47,7 +47,8 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/v1/**"
+                                "/auth/v1/**",
+                                "/api/calendar/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -64,7 +65,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:8080"
+                "http://localhost:3000"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
