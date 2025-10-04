@@ -57,15 +57,11 @@ function endOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
 }
 
-// Função atualizada para lidar com timestamps e timeZoneShift
 function getDateFromEventField(field: any): Date | null {
   if (!field) return null;
 
   if (typeof field === "object" && field.value) {
     const d = new Date(field.value);
-    if (field.timeZoneShift || field.timeZoneShift === 0) {
-      d.setMinutes(d.getMinutes() - field.timeZoneShift);
-    }
     return d;
   }
 
