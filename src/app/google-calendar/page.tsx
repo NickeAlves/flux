@@ -73,6 +73,155 @@ function getDateFromEventField(field: any): Date | null {
   return null;
 }
 
+function CalendarGrid({
+  currentMonth,
+  events,
+  onEventClick,
+}: {
+  currentMonth: Date;
+  events: GoogleEvent[];
+  onEventClick: (event: GoogleEvent) => void;
+}) {
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  // Primeiro dia do mês
+  const firstDay = new Date(year, month, 1);
+  const startingDayOfWeek = firstDay.getDay(); // 0 = domingo
+
+  // Último dia do mês
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+
+  // Dias da semana
+  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+  // Criar array de dias
+  const calendarDays = [];
+
+  // Adicionar espaços vazios para os dias antes do primeiro dia do mês
+  for (let i = 0; i < startingDayOfWeek; i++) {
+    calendarDays.push(null);
+  }
+
+  // Adicionar os dias do mês
+  for (let day = 1; day <= daysInMonth; day++) {
+    calendarDays.push(day);
+  }
+
+  // Função para pegar eventos de um dia específico
+  const getEventsForDay = (day: number) => {
+    return events.filter((event) => {
+      const startDateObj =
+        getDateFromEventField(event.start?.dateTime) ||
+        getDateFromEventField(event.start?.date);
+
+      if (!startDateObj) return false;
+
+      return (
+        startDateObj.getDate() === day &&
+        startDateObj.getMonth() === month &&
+        startDateObj.getFullYear() === year
+      );
+    });
+  };
+
+  // Verificar se é hoje
+  const isToday = (day: number) => {
+    const today = new Date();
+    return (
+      day === today.getDate() &&
+      month === today.getMonth() &&
+      year === today.getFullYear()
+    );
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow overflow-hidden">
+      {/* Cabeçalho com dias da semana */}
+      <div className="grid grid-cols-7 border-b">
+        {weekDays.map((day) => (
+          <div
+            key={day}
+            className="p-3 text-center text-sm font-semibold text-gray-700 border-r last:border-r-0"
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Grid de dias */}
+      <div className="grid grid-cols-7">
+        {calendarDays.map((day, index) => {
+          if (day === null) {
+            return (
+              <div
+                key={`empty-${index}`}
+                className="min-h-24 border-r border-b bg-gray-50"
+              ></div>
+            );
+          }
+
+          const dayEvents = getEventsForDay(day);
+          const isTodayDate = isToday(day);
+
+          return (
+            <div
+              key={day}
+              className="min-h-24 border-r border-b last:border-r-0 p-2 hover:bg-gray-50 transition"
+            >
+              <div
+                className={`text-sm font-medium mb-1 ${
+                  isTodayDate
+                    ? "bg-blue-600 text-white w-7 h-7 rounded-full flex items-center justify-center"
+                    : "text-gray-700"
+                }`}
+              >
+                {day}
+              </div>
+
+              <div className="space-y-1">
+                {dayEvents.slice(0, 3).map((event) => {
+                  const startTime = getDateFromEventField(
+                    event.start?.dateTime
+                  );
+                  const timeStr =
+                    startTime && event.start?.dateTime
+                      ? startTime.toLocaleTimeString("pt-BR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "";
+
+                  return (
+                    <button
+                      key={event.id}
+                      onClick={() => onEventClick(event)}
+                      className="w-full text-left text-xs p-1 rounded bg-blue-100 hover:bg-blue-200 text-blue-900 truncate transition"
+                      title={event.summary}
+                    >
+                      {timeStr && (
+                        <span className="font-semibold">{timeStr} </span>
+                      )}
+                      {event.summary || "Sem título"}
+                    </button>
+                  );
+                })}
+
+                {dayEvents.length > 3 && (
+                  <div className="text-xs text-gray-500 pl-1">
+                    +{dayEvents.length - 3} mais
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function CalendarComponent() {
   const [events, setEvents] = useState<GoogleEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -136,12 +285,21 @@ function CalendarComponent() {
     scope: "https://www.googleapis.com/auth/calendar",
   });
 
+  // Carrega eventos ao montar o componente
   useEffect(() => {
     const saved = localStorage.getItem("google_access_token");
     if (saved) {
       loadEventsForMonth(currentMonth);
     }
   }, []);
+
+  // Carrega eventos quando o mês muda
+  useEffect(() => {
+    const saved = localStorage.getItem("google_access_token");
+    if (saved && isConnected) {
+      loadEventsForMonth(currentMonth);
+    }
+  }, [currentMonth]);
 
   const handlePrevMonth = () => {
     const prev = new Date(
@@ -150,7 +308,6 @@ function CalendarComponent() {
       1
     );
     setCurrentMonth(prev);
-    loadEventsForMonth(prev);
   };
 
   const handleNextMonth = () => {
@@ -160,7 +317,6 @@ function CalendarComponent() {
       1
     );
     setCurrentMonth(next);
-    loadEventsForMonth(next);
   };
 
   function handleLogout() {
@@ -360,8 +516,8 @@ function CalendarComponent() {
               </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <section className="lg:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <section className="lg:col-span-3">
                 {isLoading && (
                   <div className="p-6 bg-white rounded shadow">
                     Carregando...
@@ -388,107 +544,21 @@ function CalendarComponent() {
                   </div>
                 )}
 
-                {isConnected && events.length === 0 && !isLoading && (
-                  <div className="p-6 bg-white rounded shadow text-center text-black">
-                    Nenhum evento encontrado neste mês.
-                  </div>
-                )}
-
-                {isConnected && events.length > 0 && (
-                  <div className="space-y-4">
-                    {events.map((ev: GoogleEvent) => {
-                      const startDateObj =
-                        getDateFromEventField(ev.start?.dateTime) ||
-                        getDateFromEventField(ev.start?.date);
-                      const dateLabel = startDateObj
-                        ? startDateObj.toLocaleString("pt-BR", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: ev.start?.dateTime ? "2-digit" : undefined,
-                            minute: ev.start?.dateTime ? "2-digit" : undefined,
-                          } as any)
-                        : "Sem data";
-
-                      return (
-                        <article
-                          key={ev.id}
-                          className="bg-white p-4 rounded shadow hover:shadow-md transition"
-                        >
-                          <div className="flex justify-between items-start gap-4">
-                            <div>
-                              <h3 className="font-medium text-lg text-black">
-                                {ev.summary || "Sem título"}
-                              </h3>
-                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                                {ev.description}
-                              </p>
-
-                              <div className="mt-3 flex items-center gap-3 text-sm text-gray-600 flex-wrap">
-                                {ev.start?.dateTime && (
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="w-4 h-4" />
-                                    {getDateFromEventField(
-                                      ev.start.dateTime
-                                    )?.toLocaleString("pt-BR")}
-                                  </span>
-                                )}
-                                {ev.location && (
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="w-4 h-4" />
-                                    {ev.location}
-                                  </span>
-                                )}
-                                {ev.attendees && (
-                                  <span className="flex items-center gap-1">
-                                    <Users className="w-4 h-4" />
-                                    {ev.attendees.length} participantes
-                                  </span>
-                                )}
-                                {ev.hangoutLink && (
-                                  <a
-                                    href={ev.hangoutLink}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center gap-1 text-blue-600 hover:underline"
-                                  >
-                                    <Video className="w-4 h-4" />
-                                    Meet
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="text-right flex flex-col items-end gap-2">
-                              <div className="text-sm text-gray-700">
-                                {dateLabel}
-                              </div>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => openEditModal(ev)}
-                                  className="text-sm px-3 py-1 bg-black rounded hover:bg-black/60 cursor-pointer"
-                                >
-                                  Editar
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteEvent(ev.id)}
-                                  className="text-sm px-3 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100 cursor-pointer"
-                                >
-                                  Excluir
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
+                {isConnected && !isLoading && (
+                  <CalendarGrid
+                    currentMonth={currentMonth}
+                    events={events}
+                    onEventClick={openEditModal}
+                  />
                 )}
               </section>
 
               <aside className="lg:col-span-1 space-y-4">
                 <div className="bg-red-600 p-4 rounded shadow">
                   <p className="text-sm text-white">Resumo do mês</p>
-                  <p className="mt-2 text-2xl font-semibold">{events.length}</p>
+                  <p className="mt-2 text-2xl font-semibold text-white">
+                    {events.length}
+                  </p>
                   <p className="text-xs text-white">eventos neste mês</p>
                 </div>
 

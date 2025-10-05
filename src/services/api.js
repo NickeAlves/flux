@@ -206,10 +206,6 @@ const api = {
     });
     return handleResponse(response);
   },
-
-  async whatsappWeb() {
-    return "https://web.whatsapp.com/";
-  },
 };
 
 export default api;

@@ -39,7 +39,6 @@ public class GoogleCalendarService {
         Events events = service.events().list("primary")
                 .setTimeMin(new DateTime(timeMin))
                 .setTimeMax(new DateTime(timeMax))
-                .setTimeMin(new DateTime(System.currentTimeMillis()))
                 .setOrderBy("startTime")
                 .setSingleEvents(true)
                 .execute();
