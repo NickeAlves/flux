@@ -2,19 +2,11 @@
 
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { useEffect, useState } from "react";
-import {
-  Clock,
-  MapPin,
-  Video,
-  Users,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-} from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import DashboardMenu from "@/components/DashboardMenu";
 import api from "@/services/api";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const GOOGLE_CLIENT_ID =
   "569726113265-evpgs7qsa7dim7l79o1rumjmn4scorsb.apps.googleusercontent.com";
@@ -85,31 +77,24 @@ function CalendarGrid({
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
 
-  // Primeiro dia do mês
   const firstDay = new Date(year, month, 1);
-  const startingDayOfWeek = firstDay.getDay(); // 0 = domingo
+  const startingDayOfWeek = firstDay.getDay();
 
-  // Último dia do mês
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
 
-  // Dias da semana
-  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const weekDays = ["Sun", "Mon", "Tur", "Wed", "Thu", "Fri", "Sat"];
 
-  // Criar array de dias
   const calendarDays = [];
 
-  // Adicionar espaços vazios para os dias antes do primeiro dia do mês
   for (let i = 0; i < startingDayOfWeek; i++) {
     calendarDays.push(null);
   }
 
-  // Adicionar os dias do mês
   for (let day = 1; day <= daysInMonth; day++) {
     calendarDays.push(day);
   }
 
-  // Função para pegar eventos de um dia específico
   const getEventsForDay = (day: number) => {
     return events.filter((event) => {
       const startDateObj =
@@ -126,7 +111,6 @@ function CalendarGrid({
     });
   };
 
-  // Verificar se é hoje
   const isToday = (day: number) => {
     const today = new Date();
     return (
@@ -137,28 +121,23 @@ function CalendarGrid({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      {/* Cabeçalho com dias da semana */}
-      <div className="grid grid-cols-7 border-b">
+    <div className="bg-white shadow overflow-hidden">
+      <div className="grid grid-cols-7 border border-black rounded-lg">
         {weekDays.map((day) => (
           <div
             key={day}
-            className="p-3 text-center text-sm font-semibold text-gray-700 border-r last:border-r-0"
+            className="p-2 text-center text-sm font-semibold text-gray-700"
           >
             {day}
           </div>
         ))}
       </div>
 
-      {/* Grid de dias */}
-      <div className="grid grid-cols-7">
+      <div className="grid grid-cols-7 rounded-lg">
         {calendarDays.map((day, index) => {
           if (day === null) {
             return (
-              <div
-                key={`empty-${index}`}
-                className="min-h-24 border-r border-b bg-gray-50"
-              ></div>
+              <div key={`empty-${index}`} className="min-h-24 bg-gray-50"></div>
             );
           }
 
@@ -168,7 +147,7 @@ function CalendarGrid({
           return (
             <div
               key={day}
-              className="min-h-24 border-r border-b last:border-r-0 p-2 hover:bg-gray-50 transition"
+              className="min-h-24 border border-black last:border-r-0 p-2 hover:bg-gray-400 transition"
             >
               <div
                 className={`text-sm font-medium mb-1 ${
@@ -223,6 +202,8 @@ function CalendarGrid({
 }
 
 function CalendarComponent() {
+  const [successMessage, setSuccessMessage] = useState(false);
+  const router = useRouter();
   const [events, setEvents] = useState<GoogleEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -282,7 +263,8 @@ function CalendarComponent() {
     onError: () => {
       setError("Erro ao fazer login com Google");
     },
-    scope: "https://www.googleapis.com/auth/calendar",
+    scope:
+      "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events",
   });
 
   // Carrega eventos ao montar o componente
@@ -322,6 +304,12 @@ function CalendarComponent() {
   function handleLogout() {
     localStorage.removeItem("google_access_token");
     setIsConnected(false);
+    setSuccessMessage(true);
+
+    setTimeout(() => {
+      setSuccessMessage(false);
+      router.refresh();
+    }, 2000);
     setEvents([]);
   }
 
@@ -385,7 +373,7 @@ function CalendarComponent() {
     setError(null);
 
     try {
-      let eventPayload: any = {
+      const eventPayload: any = {
         summary: form.summary,
         description: form.description,
         location: form.location,
@@ -457,6 +445,26 @@ function CalendarComponent() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {successMessage && (
+        <div className="fixed top-4 md:top-20 right-4 p-4 text-white bg-green-500 rounded-lg shadow-lg transition-all duration-300 z-50">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>Log out successfully!</span>
+            <button
+              onClick={() => setSuccessMessage(false)}
+              className="ml-auto hover:opacity-75"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       <DashboardMenu />
 
       <div className="flex">

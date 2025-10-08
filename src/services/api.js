@@ -182,14 +182,25 @@ const api = {
   },
 
   async createGoogleEvent(event) {
+    const eventWithTimezone = {
+      ...event,
+      start: {
+        dateTime: event.start.dateTime,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      end: {
+        dateTime: event.end.dateTime,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    };
+
     const response = await fetch(`${API_URL}/api/calendar/events`, {
       method: "POST",
       headers: getAuthHeaders(true, true),
-      body: JSON.stringify(event),
+      body: JSON.stringify(eventWithTimezone),
     });
     return handleResponse(response);
   },
-
   async updateGoogleEvent(eventId, event) {
     const response = await fetch(`${API_URL}/api/calendar/events/${eventId}`, {
       method: "PUT",
