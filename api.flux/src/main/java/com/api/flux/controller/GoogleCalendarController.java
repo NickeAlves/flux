@@ -1,7 +1,7 @@
 package com.api.flux.controller;
 
-import com.api.flux.dto.request.calendar.EventRequestDTO;
 import com.api.flux.dto.request.calendar.EventDateTimeDTO;
+import com.api.flux.dto.request.calendar.EventRequestDTO;
 import com.api.flux.service.GoogleCalendarService;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;

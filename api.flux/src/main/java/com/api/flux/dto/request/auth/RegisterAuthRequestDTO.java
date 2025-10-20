@@ -15,7 +15,7 @@ public record RegisterAuthRequestDTO(@NotBlank(message = "Name is required")
 
                                      @NotNull
                                      @Past
-                                     @JsonFormat(pattern = "dd/MM/yyyy")
+                                     @JsonFormat(pattern = "MM/dd/yyyy")
                                      LocalDate dateOfBirth,
 
                                      @Email
