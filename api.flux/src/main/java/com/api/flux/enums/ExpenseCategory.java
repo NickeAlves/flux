@@ -1,0 +1,22 @@
+package com.api.flux.enums;
+
+public enum ExpenseCategory {
+    HOUSING,
+    UTILITIES,
+    TRANSPORTATION,
+    GROCERIES,
+    FOOD_AND_DINING,
+    HEALTHCARE,
+    WELLNESS,
+    PERSONAL_CARE,
+    FAMILY,
+    EDUCATION,
+    ENTERTAINMENT,
+    LEISURE,
+    FINANCIAL_OBLIGATIONS,
+    SAVINGS,
+    INVESTMENTS,
+    DONATIONS,
+    MISCELLANEOUS,
+    OTHER
+}
