@@ -6,5 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public record UpdateUserRequestDTO(String name,
                                    String lastName,
                                    String email,
-                                   String password) {
+                                   String password,
+                                   String profileImageUrl) {
 }

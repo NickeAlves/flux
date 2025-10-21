@@ -11,5 +11,6 @@ public record DataUserDTO(UUID id,
                           String email,
                           @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
                           LocalDate dateOfBirth,
-                          Integer age) {
+                          Integer age,
+                          String profileImageUrl) {
 }

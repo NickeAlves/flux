@@ -59,6 +59,8 @@ public class AuthService {
             user.setEmail(email);
             user.setPassword(passwordEncoder.encode(dto.password()));
 
+            if (dto.profileImageUrl() != null && !dto.profileImageUrl().trim().isEmpty()) user.setProfileImageUrl(dto.profileImageUrl());
+
             User savedUser = userRepository.save(user);
             int age = UserService.calculateAge(savedUser);
             String token = tokenService.generateToken(savedUser);

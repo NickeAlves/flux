@@ -24,5 +24,7 @@ public record RegisterAuthRequestDTO(@NotBlank(message = "Name is required")
 
                                      @NotBlank(message = "Password is required")
                                      @Size(min = 6, max = 100, message = "Password must be a minimum of 6 characters")
-                                     String password) {
+                                     String password,
+
+                                     String profileImageUrl) {
 }

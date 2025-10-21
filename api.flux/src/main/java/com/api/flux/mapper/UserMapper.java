@@ -13,7 +13,8 @@ public final class UserMapper {
                 user.getLastName(),
                 user.getEmail(),
                 user.getDateOfBirth(),
-                age
+                age,
+                user.getProfileImageUrl()
         );
     }
 }

@@ -67,7 +67,8 @@ public class UserService {
                     user.getLastName(),
                     user.getEmail(),
                     user.getDateOfBirth(),
-                    calculateAge(user)
+                    calculateAge(user),
+                    user.getProfileImageUrl()
             ));
 
             return ResponseEntity.ok(PaginatedUserResponseDTO.success("Users retrieved successfully", userDTOsPage));
@@ -187,6 +188,11 @@ public class UserService {
                 String newPassword = passwordEncoder.encode(dto.password());
                 existingUser.setPassword(newPassword);
             }
+
+            if (dto.profileImageUrl() != null && !dto.profileImageUrl().trim().isEmpty()) {
+                existingUser.setProfileImageUrl(dto.profileImageUrl());
+            }
+
             User updatedUser = userRepository.save(existingUser);
             int age = calculateAge(optionalUser.get());
             DataUserDTO dataUserDTO = UserMapper.toDto(updatedUser, age);

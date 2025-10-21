@@ -17,16 +17,18 @@ public class User {
     private LocalDate dateOfBirth;
     private String email;
     private String password;
+    private String profileImageUrl;
 
     public User() {
     }
 
-    public User(String name, String lastName, LocalDate dateOfBirth, String email, String password) {
+    public User(String name, String lastName, LocalDate dateOfBirth, String email, String password, String profileImageUrl) {
         this.name = name;
         this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
         this.email = email;
         this.password = password;
+        this.profileImageUrl = profileImageUrl;
     }
 
     @PrePersist
@@ -78,5 +80,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }
