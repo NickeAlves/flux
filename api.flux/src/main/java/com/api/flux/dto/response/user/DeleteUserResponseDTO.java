@@ -7,14 +7,14 @@ public record DeleteUserResponseDTO(Boolean success,
                                     String token,
                                     String timestamp) {
     public static DeleteUserResponseDTO success(String message) {
-        return new DeleteUserResponseDTO(true, message, null, Instant.now().toString());
+        return new DeleteUserResponseDTO(Boolean.TRUE, message, null, Instant.now().toString());
     }
 
     public static DeleteUserResponseDTO error(String message) {
-        return new DeleteUserResponseDTO(false, message, null, Instant.now().toString());
+        return new DeleteUserResponseDTO(Boolean.FALSE, message, null, Instant.now().toString());
     }
 
     public static DeleteUserResponseDTO notFound(String message) {
-        return new DeleteUserResponseDTO(false, message, null, Instant.now().toString());
+        return new DeleteUserResponseDTO(Boolean.FALSE, message, null, Instant.now().toString());
     }
 }

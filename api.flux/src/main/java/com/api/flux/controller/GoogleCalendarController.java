@@ -22,12 +22,11 @@ public class GoogleCalendarController {
 
     @GetMapping("/events")
     public ResponseEntity<List<Event>> getEvents(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-Google-Token") String googleToken,
             @RequestParam String timeMin,
             @RequestParam String timeMax) {
         try {
-            String accessToken = token.replace("Bearer ", "");
-            return ResponseEntity.ok(googleCalendarService.getEvents(accessToken, timeMin, timeMax));
+            return ResponseEntity.ok(googleCalendarService.getEvents(googleToken, timeMin, timeMax));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).build();
@@ -36,11 +35,9 @@ public class GoogleCalendarController {
 
     @PostMapping("/events")
     public ResponseEntity<?> createEvent(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-Google-Token") String googleToken,
             @RequestBody EventRequestDTO eventRequest) {
         try {
-            String accessToken = token.replace("Bearer ", "");
-
             Event event = new Event()
                     .setSummary(eventRequest.summary())
                     .setDescription(eventRequest.description())
@@ -48,7 +45,7 @@ public class GoogleCalendarController {
                     .setStart(toGoogleEventDateTime(eventRequest.start()))
                     .setEnd(toGoogleEventDateTime(eventRequest.end()));
 
-            Event createdEvent = googleCalendarService.createEvent(accessToken, event);
+            Event createdEvent = googleCalendarService.createEvent(googleToken, event);
             return ResponseEntity.ok(createdEvent);
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,12 +56,10 @@ public class GoogleCalendarController {
 
     @PutMapping("/events/{eventId}")
     public ResponseEntity<?> updateEvent(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-Google-Token") String googleToken,
             @PathVariable String eventId,
             @RequestBody EventRequestDTO eventRequest) {
         try {
-            String accessToken = token.replace("Bearer ", "");
-
             Event event = new Event()
                     .setSummary(eventRequest.summary())
                     .setDescription(eventRequest.description())
@@ -72,7 +67,7 @@ public class GoogleCalendarController {
                     .setStart(toGoogleEventDateTime(eventRequest.start()))
                     .setEnd(toGoogleEventDateTime(eventRequest.end()));
 
-            Event updatedEvent = googleCalendarService.updateEvent(accessToken, eventId, event);
+            Event updatedEvent = googleCalendarService.updateEvent(googleToken, eventId, event);
             return ResponseEntity.ok(updatedEvent);
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,11 +78,10 @@ public class GoogleCalendarController {
 
     @DeleteMapping("/events/{eventId}")
     public ResponseEntity<Void> deleteEvent(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-Google-Token") String googleToken,
             @PathVariable String eventId) {
         try {
-            String accessToken = token.replace("Bearer ", "");
-            googleCalendarService.deleteEvent(accessToken, eventId);
+            googleCalendarService.deleteEvent(googleToken, eventId);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             e.printStackTrace();

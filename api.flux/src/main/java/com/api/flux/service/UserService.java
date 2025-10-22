@@ -37,10 +37,10 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public static int calculateAge(User user) {
+    public static Integer calculateAge(User user) {
         LocalDate userDateOfBirth = user.getDateOfBirth();
 
-        return Period.between(userDateOfBirth, LocalDate.now()).getYears();
+        return (Integer) Period.between(userDateOfBirth, LocalDate.now()).getYears();
     }
 
     public ResponseEntity<PaginatedUserResponseDTO<DataUserDTO>> listUsersPaginated(int page, int size, String sortBy, String sortDirection) {

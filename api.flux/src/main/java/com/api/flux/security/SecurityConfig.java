@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 @Configuration
@@ -47,8 +48,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/v1/**",
-                                "/api/calendar/**"
+                                "/auth/v1/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -83,11 +83,11 @@ public class SecurityConfig {
                 "Access-Control-Request-Headers"
         ));
 
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(Boolean.valueOf(true));
 
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
 
-        configuration.setMaxAge(3600L);
+        configuration.setMaxAge(Duration.ofDays(3600L));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

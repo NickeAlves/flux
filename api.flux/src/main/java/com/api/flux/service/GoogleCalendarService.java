@@ -39,7 +39,7 @@ public class GoogleCalendarService {
                 .setTimeMin(new DateTime(timeMin))
                 .setTimeMax(new DateTime(timeMax))
                 .setOrderBy("startTime")
-                .setSingleEvents(true)
+                .setSingleEvents(Boolean.TRUE)
                 .execute();
 
         return events.getItems();
@@ -59,5 +59,4 @@ public class GoogleCalendarService {
         Calendar service = getCalendarService(accessToken);
         service.events().delete("primary", eventId).execute();
     }
-
 }
