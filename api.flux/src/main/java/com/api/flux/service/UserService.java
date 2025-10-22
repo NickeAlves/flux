@@ -92,7 +92,7 @@ public class UserService {
 
             User user = optionalUser.get();
             int userAge = calculateAge(user);
-            DataUserDTO userDTO = UserMapper.toDto(user, userAge);
+            DataUserDTO userDTO = UserMapper.toUserDTO(user, userAge);
 
             logger.info("User found with ID: {}", id);
             return ResponseEntity.ok().body(ResponseUserDTO.success("User found by ID.", userDTO));
@@ -124,7 +124,7 @@ public class UserService {
 
             User user = optionalUser.get();
             int userAge = calculateAge(user);
-            DataUserDTO userDTO = UserMapper.toDto(user, userAge);
+            DataUserDTO userDTO = UserMapper.toUserDTO(user, userAge);
 
             logger.info("User found with email: {}", email);
             return ResponseEntity.ok()
@@ -195,7 +195,7 @@ public class UserService {
 
             User updatedUser = userRepository.save(existingUser);
             int age = calculateAge(optionalUser.get());
-            DataUserDTO dataUserDTO = UserMapper.toDto(updatedUser, age);
+            DataUserDTO dataUserDTO = UserMapper.toUserDTO(updatedUser, age);
             String newToken = tokenService.generateToken(updatedUser);
 
             logger.info("User updated successfully.");

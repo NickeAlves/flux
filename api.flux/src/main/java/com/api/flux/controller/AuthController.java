@@ -7,7 +7,6 @@ import com.api.flux.dto.response.auth.LogoutAuthResponseDTO;
 import com.api.flux.dto.response.auth.RegisterAuthResponseDTO;
 import com.api.flux.service.AuthService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,8 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth/v1")
 public class AuthController {
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<RegisterAuthResponseDTO> register(@Valid @RequestBody RegisterAuthRequestDTO dto) {

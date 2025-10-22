@@ -6,7 +6,6 @@ import com.api.flux.service.GoogleCalendarService;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,9 +15,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/calendar")
 public class GoogleCalendarController {
+    private final GoogleCalendarService googleCalendarService;
 
-    @Autowired
-    private GoogleCalendarService googleCalendarService;
+    public GoogleCalendarController(GoogleCalendarService googleCalendarService) {
+        this.googleCalendarService = googleCalendarService;
+    }
 
     @GetMapping("/events")
     public ResponseEntity<List<Event>> getEvents(

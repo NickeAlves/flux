@@ -64,7 +64,7 @@ public class AuthService {
             User savedUser = userRepository.save(user);
             int age = UserService.calculateAge(savedUser);
             String token = tokenService.generateToken(savedUser);
-            DataUserDTO dataUserDTO = UserMapper.toDto(savedUser, age);
+            DataUserDTO dataUserDTO = UserMapper.toUserDTO(savedUser, age);
 
             logger.info("User registered successfully with email: {}", email);
             return ResponseEntity.status(201)
@@ -117,7 +117,7 @@ public class AuthService {
 
             String token = tokenService.generateToken(user);
             int age = UserService.calculateAge(user);
-            DataUserDTO userData = UserMapper.toDto(user, age);
+            DataUserDTO userData = UserMapper.toUserDTO(user, age);
 
             logger.info("User logged in successfully with email: {}", email);
             return ResponseEntity.ok()
