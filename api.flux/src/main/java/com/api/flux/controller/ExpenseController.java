@@ -39,9 +39,14 @@ public class ExpenseController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "transactionDate") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection
-    ) {
+            @RequestParam(defaultValue = "desc") String sortDirection) {
         return expenseService.listExpensesByUserPaginated(userId, page, size, sortBy, sortDirection);
+    }
+
+    @GetMapping("/user/{userId}/expense/{expenseId}")
+    public ResponseEntity<ResponseExpenseDTO> getExpenseByUserIdAndExpenseId(@PathVariable UUID userId,
+                                                                             @PathVariable UUID expenseId) {
+        return expenseService.findExpenseByUserIdAndExpenseId(userId, expenseId);
     }
 
     @DeleteMapping("/{id}")

@@ -7,6 +7,7 @@ import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
 import com.api.flux.dto.response.expense.ResponseExpenseDTO;
 import com.api.flux.entity.Expense;
+import com.api.flux.entity.User;
 import com.api.flux.mapper.ExpenseMapper;
 import com.api.flux.repository.ExpenseRepository;
 import com.api.flux.repository.UserRepository;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -78,6 +80,39 @@ public class ExpenseService {
             logger.error("Error listing expenses for user {}: ", userId, exception);
             return ResponseEntity.internalServerError()
                     .body(PaginatedExpenseResponseDTO.error("Internal server error occurred while retrieving expenses"));
+        }
+    }
+
+    public ResponseEntity<ResponseExpenseDTO> findExpenseByUserIdAndExpenseId(UUID userId, UUID expenseId) {
+        try {
+            Optional<User> optionalUser = userRepository.findById(userId);
+            Optional<Expense> optionalExpense = expenseRepository.findById(expenseId);
+
+            if (optionalUser.isEmpty()) {
+                logger.warn("User's expenses not found with ID: {}", userId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ResponseExpenseDTO.userNotFound("User not found."));
+            }
+
+            if (optionalExpense.isEmpty()) {
+                logger.warn("Expense not found with ID: {}", expenseId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ResponseExpenseDTO.expenseNotFound("Expense not found."));
+            }
+            Expense expense = optionalExpense.get();
+            DataExpenseDTO dataExpenseDTO = ExpenseMapper.toDataDTO(expense);
+
+            logger.info("Expense with ID {} found", expenseId);
+            return ResponseEntity.ok(ResponseExpenseDTO.success("Expense found successfully", dataExpenseDTO));
+        } catch (MethodArgumentTypeMismatchException methodArgumentTypeMismatchException) {
+            logger.error("Please, verify IDs. User ID: {} and Expense ID: {} ", userId, expenseId, methodArgumentTypeMismatchException);
+            return ResponseEntity.internalServerError()
+                    .body(ResponseExpenseDTO.error("Internal server error occurred while retrieving expense. Please, verify IDs."));
+
+        } catch (Exception exception) {
+            logger.error("Error white find expenses for user {}: ", userId, exception);
+            return ResponseEntity.internalServerError()
+                    .body(ResponseExpenseDTO.error("Internal server error occurred while retrieving expense"));
         }
     }
 
