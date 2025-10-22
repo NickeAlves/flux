@@ -84,6 +84,7 @@ public class ExpenseService {
         try {
             UUID userId = dto.userId();
             if (!userRepository.existsById(userId)) {
+                logger.warn("User not found with ID: {}", userId);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                         ResponseExpenseDTO.userNotFound("User not found")
                 );
@@ -121,13 +122,33 @@ public class ExpenseService {
         try {
             if (!expenseRepository.existsById(id)) {
                 logger.warn("Delete attempt for non-existent expense with ID: {}", id);
-                return ResponseEntity.status(404)
-                        .body(DeleteExpenseResponseDTO.notFound("Expense not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(DeleteExpenseResponseDTO.expenseNotFound("Expense not found"));
             }
             expenseRepository.deleteById(id);
             logger.info("Expense deleted successfully with ID {}.", id);
             return ResponseEntity.ok()
                     .body(DeleteExpenseResponseDTO.success("Expense deleted successfully."));
+        } catch (Exception exception) {
+            logger.error("Unexpected error during expense deletion: ", exception);
+            return ResponseEntity.internalServerError()
+                    .body(DeleteExpenseResponseDTO.error("An unexpected error occurred during deletion"));
+        }
+    }
+
+    public ResponseEntity<DeleteExpenseResponseDTO> clearAllExpensesByUserId(UUID userId) {
+        try {
+            if (!userRepository.existsById(userId)) {
+                logger.warn("User not found with ID: {}", userId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        DeleteExpenseResponseDTO.userNotFound("User not found")
+                );
+            }
+
+            expenseRepository.deleteAll();
+            logger.info("All expenses deleted from user ID: {}", userId);
+            return ResponseEntity.ok()
+                    .body(DeleteExpenseResponseDTO.success("All expenses deleted successfully."));
         } catch (Exception exception) {
             logger.error("Unexpected error during expense deletion: ", exception);
             return ResponseEntity.internalServerError()

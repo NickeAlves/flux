@@ -13,7 +13,11 @@ public record DeleteExpenseResponseDTO(boolean success,
         return new DeleteExpenseResponseDTO(Boolean.FALSE, message, Instant.now().toString());
     }
 
-    public static DeleteExpenseResponseDTO notFound(String message) {
+    public static DeleteExpenseResponseDTO expenseNotFound(String message) {
         return new DeleteExpenseResponseDTO(Boolean.FALSE, message, Instant.now().toString());
+    }
+
+    public static DeleteExpenseResponseDTO userNotFound(String message) {
+        return new DeleteExpenseResponseDTO(false, message, Instant.now().toString());
     }
 }

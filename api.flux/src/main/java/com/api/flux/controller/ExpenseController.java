@@ -41,4 +41,9 @@ public class ExpenseController {
     public ResponseEntity<DeleteExpenseResponseDTO> deleteExpenseById(@PathVariable UUID id) {
         return expenseService.deleteExpenseById(id);
     }
+
+    @DeleteMapping("/clear/{userId}")
+    public ResponseEntity<DeleteExpenseResponseDTO> clearAllExpensesByUserId(@PathVariable UUID userId) {
+        return expenseService.clearAllExpensesByUserId(userId);
+    }
 }
