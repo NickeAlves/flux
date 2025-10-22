@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record UpdateExpenseRequestDTO(@NotBlank(message = "Title is required")
@@ -19,5 +20,8 @@ public record UpdateExpenseRequestDTO(@NotBlank(message = "Title is required")
                                       ExpenseCategory category,
 
                                       @NotNull(message = "Amount is required")
-                                      BigDecimal amount) {
+                                      BigDecimal amount,
+
+                                      @NotNull(message = "Transaction date is required")
+                                      Instant transactionDate) {
 }

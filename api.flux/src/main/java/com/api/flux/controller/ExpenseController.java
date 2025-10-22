@@ -1,6 +1,7 @@
 package com.api.flux.controller;
 
 import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
+import com.api.flux.dto.request.expense.UpdateExpenseRequestDTO;
 import com.api.flux.dto.response.expense.DataExpenseDTO;
 import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
@@ -24,6 +25,12 @@ public class ExpenseController {
     @PostMapping
     public ResponseEntity<ResponseExpenseDTO> createExpense(@Valid @RequestBody CreateExpenseRequestDTO dto) {
         return expenseService.createExpense(dto);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseExpenseDTO> updateExpenseById(@PathVariable UUID id,
+                                                                @Valid @RequestBody UpdateExpenseRequestDTO dto) {
+        return expenseService.updateExpenseById(id, dto);
     }
 
     @GetMapping("/user/{userId}")

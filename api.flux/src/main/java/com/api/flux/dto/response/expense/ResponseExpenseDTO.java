@@ -14,6 +14,10 @@ public record ResponseExpenseDTO(boolean success,
         return new ResponseExpenseDTO(false, message, null, Instant.now().toString());
     }
 
+    public static ResponseExpenseDTO expenseNotFound(String message) {
+        return new ResponseExpenseDTO(Boolean.FALSE, message, null, Instant.now().toString());
+    }
+
     public static ResponseExpenseDTO userNotFound(String message) {
         return new ResponseExpenseDTO(false, message, null, Instant.now().toString());
     }

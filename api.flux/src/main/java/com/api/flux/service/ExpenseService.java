@@ -1,6 +1,7 @@
 package com.api.flux.service;
 
 import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
+import com.api.flux.dto.request.expense.UpdateExpenseRequestDTO;
 import com.api.flux.dto.response.expense.DataExpenseDTO;
 import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -118,6 +120,54 @@ public class ExpenseService {
         }
     }
 
+    public ResponseEntity<ResponseExpenseDTO> updateExpenseById(UUID id, UpdateExpenseRequestDTO dto) {
+        try {
+            Optional<Expense> optionalExpense = expenseRepository.findById(id);
+
+            if (optionalExpense.isEmpty()) {
+                logger.warn("Expense not found with ID: {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ResponseExpenseDTO.expenseNotFound("Expense not found"));
+            }
+
+            Expense existingExpense = optionalExpense.get();
+
+            if (dto.title() != null && !dto.title().trim().isEmpty()) {
+                existingExpense.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
+            }
+
+            if (dto.description() != null && !dto.description().trim().isEmpty()) {
+                existingExpense.setDescription(TextUtils.capitalizeFirstLetters(dto.description()));
+            }
+
+            if (dto.category() != null) {
+                existingExpense.setDescription(dto.description());
+            }
+
+            if (dto.amount() != null) {
+                existingExpense.setAmount(dto.amount());
+            }
+
+            if (dto.transactionDate() != null) {
+                existingExpense.setTransactionDate(dto.transactionDate());
+            }
+
+            Expense updatedExpense = expenseRepository.save(existingExpense);
+            DataExpenseDTO dataExpenseDTO = ExpenseMapper.toDataDTO(updatedExpense);
+
+            logger.info("Expense updated successfully with ID {}", id);
+            return ResponseEntity.ok(ResponseExpenseDTO.success("Expense updated successfully", dataExpenseDTO));
+        } catch (IllegalArgumentException illegalArgumentException) {
+            logger.warn("Update validation failed: {}", illegalArgumentException.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(ResponseExpenseDTO.error(illegalArgumentException.getMessage()));
+        } catch (Exception exception) {
+            logger.error("Unexpected error during expense update: ", exception);
+            return ResponseEntity.internalServerError()
+                    .body(ResponseExpenseDTO.error("An unexpected error occurred during update"));
+        }
+    }
+
     public ResponseEntity<DeleteExpenseResponseDTO> deleteExpenseById(UUID id) {
         try {
             if (!expenseRepository.existsById(id)) {
@@ -127,8 +177,7 @@ public class ExpenseService {
             }
             expenseRepository.deleteById(id);
             logger.info("Expense deleted successfully with ID {}.", id);
-            return ResponseEntity.ok()
-                    .body(DeleteExpenseResponseDTO.success("Expense deleted successfully."));
+            return ResponseEntity.ok(DeleteExpenseResponseDTO.success("Expense deleted successfully."));
         } catch (Exception exception) {
             logger.error("Unexpected error during expense deletion: ", exception);
             return ResponseEntity.internalServerError()
@@ -147,8 +196,7 @@ public class ExpenseService {
 
             expenseRepository.deleteAll();
             logger.info("All expenses deleted from user ID: {}", userId);
-            return ResponseEntity.ok()
-                    .body(DeleteExpenseResponseDTO.success("All expenses deleted successfully."));
+            return ResponseEntity.ok(DeleteExpenseResponseDTO.success("All expenses deleted successfully."));
         } catch (Exception exception) {
             logger.error("Unexpected error during expense deletion: ", exception);
             return ResponseEntity.internalServerError()
