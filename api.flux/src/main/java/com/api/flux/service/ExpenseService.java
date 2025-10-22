@@ -2,6 +2,7 @@ package com.api.flux.service;
 
 import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
 import com.api.flux.dto.response.expense.DataExpenseDTO;
+import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
 import com.api.flux.dto.response.expense.ResponseExpenseDTO;
 import com.api.flux.entity.Expense;
@@ -113,6 +114,24 @@ public class ExpenseService {
             logger.error("Unexpected error during expense creation: ", exception);
             return ResponseEntity.internalServerError()
                     .body(ResponseExpenseDTO.error("An unexpected error occurred during expense creation"));
+        }
+    }
+
+    public ResponseEntity<DeleteExpenseResponseDTO> deleteExpenseById(UUID id) {
+        try {
+            if (!expenseRepository.existsById(id)) {
+                logger.warn("Delete attempt for non-existent expense with ID: {}", id);
+                return ResponseEntity.status(404)
+                        .body(DeleteExpenseResponseDTO.notFound("Expense not found"));
+            }
+            expenseRepository.deleteById(id);
+            logger.info("Expense deleted successfully with ID {}.", id);
+            return ResponseEntity.ok()
+                    .body(DeleteExpenseResponseDTO.success("Expense deleted successfully."));
+        } catch (Exception exception) {
+            logger.error("Unexpected error during expense deletion: ", exception);
+            return ResponseEntity.internalServerError()
+                    .body(DeleteExpenseResponseDTO.error("An unexpected error occurred during deletion"));
         }
     }
 }

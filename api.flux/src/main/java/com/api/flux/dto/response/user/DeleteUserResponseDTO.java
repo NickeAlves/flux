@@ -2,7 +2,7 @@ package com.api.flux.dto.response.user;
 
 import java.time.Instant;
 
-public record DeleteUserResponseDTO(Boolean success,
+public record DeleteUserResponseDTO(boolean success,
                                     String message,
                                     String token,
                                     String timestamp) {

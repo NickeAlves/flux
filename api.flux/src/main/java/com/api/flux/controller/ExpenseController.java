@@ -2,6 +2,7 @@ package com.api.flux.controller;
 
 import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
 import com.api.flux.dto.response.expense.DataExpenseDTO;
+import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
 import com.api.flux.dto.response.expense.ResponseExpenseDTO;
 import com.api.flux.service.ExpenseService;
@@ -34,5 +35,10 @@ public class ExpenseController {
             @RequestParam(defaultValue = "desc") String sortDirection
     ) {
         return expenseService.listExpensesByUserPaginated(userId, page, size, sortBy, sortDirection);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<DeleteExpenseResponseDTO> deleteExpenseById(@PathVariable UUID id) {
+        return expenseService.deleteExpenseById(id);
     }
 }
