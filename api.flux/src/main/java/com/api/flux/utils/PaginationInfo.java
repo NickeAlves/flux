@@ -1,6 +1,6 @@
-package com.api.flux.dto.response.user;
+package com.api.flux.utils;
 
-public record PaginationInfoDTO(
+public record PaginationInfo(
         int currentPage,
         int pageSize,
         long totalElements,

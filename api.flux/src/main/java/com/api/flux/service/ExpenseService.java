@@ -2,6 +2,7 @@ package com.api.flux.service;
 
 import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
 import com.api.flux.dto.response.expense.DataExpenseDTO;
+import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
 import com.api.flux.dto.response.expense.ResponseExpenseDTO;
 import com.api.flux.entity.Expense;
 import com.api.flux.mapper.ExpenseMapper;
@@ -10,17 +11,23 @@ import com.api.flux.repository.UserRepository;
 import com.api.flux.utils.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class ExpenseService {
     private static final Logger logger = LoggerFactory.getLogger(ExpenseService.class);
+    private static final List<String> VALID_SORT_FIELDS = Arrays.asList("category", "amount", "transactionDate", "title");
 
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
@@ -30,12 +37,53 @@ public class ExpenseService {
         this.userRepository = userRepository;
     }
 
+    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseDTO>> listExpensesByUserPaginated(UUID userId, int page, int size, String sortBy, String sortDirection) {
+        try {
+            if (!userRepository.existsById(userId)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(PaginatedExpenseResponseDTO.error("User not found"));
+            }
+
+            if (page < 0) page = 0;
+            if (size <= 0 || size > 100) size = 10;
+
+            if (sortBy == null || sortBy.isEmpty() || !VALID_SORT_FIELDS.contains(sortBy)) {
+                sortBy = "transactionDate";
+            }
+
+            Sort.Direction direction = Sort.Direction.DESC;
+            if ("asc".equalsIgnoreCase(sortDirection)) {
+                direction = Sort.Direction.ASC;
+            }
+
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            Page<Expense> expensesPage = expenseRepository.findByUserId(userId, pageable);
+
+            Page<DataExpenseDTO> expenseDTOsPage = expensesPage.map(expense -> new DataExpenseDTO(
+                    expense.getId(),
+                    expense.getUserId(),
+                    expense.getTitle(),
+                    expense.getDescription(),
+                    expense.getCategory(),
+                    expense.getAmount(),
+                    expense.getTransactionDate()
+            ));
+
+            return ResponseEntity.ok(PaginatedExpenseResponseDTO.success("Expenses retrieved successfully", expenseDTOsPage));
+
+        } catch (Exception exception) {
+            logger.error("Error listing expenses for user {}: ", userId, exception);
+            return ResponseEntity.internalServerError()
+                    .body(PaginatedExpenseResponseDTO.error("Internal server error occurred while retrieving expenses"));
+        }
+    }
+
     @Transactional
     public ResponseEntity<ResponseExpenseDTO> createExpense(CreateExpenseRequestDTO dto) {
         try {
             UUID userId = dto.userId();
-            if (expenseRepository.existsById(userId)) {
-                return ResponseEntity.status(404).body(
+            if (!userRepository.existsById(userId)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                         ResponseExpenseDTO.userNotFound("User not found")
                 );
             }
@@ -47,7 +95,7 @@ public class ExpenseService {
             expense.setDescription(dto.description());
             expense.setCategory(dto.category());
             expense.setAmount(dto.amount());
-            expense.setTransactionDate(Instant.now());
+            expense.setTransactionDate(dto.transactionDate());
 
             Expense savedExpense = expenseRepository.save(expense);
             DataExpenseDTO dataExpenseDTO = ExpenseMapper.toDataDTO(savedExpense);
@@ -58,13 +106,13 @@ public class ExpenseService {
                     ResponseExpenseDTO.success("Expense created successfully!", dataExpenseDTO)
             );
         } catch (IllegalArgumentException illegalArgumentException) {
-            logger.warn("Update validation failed: {}", illegalArgumentException.getMessage());
+            logger.warn("Expense creation validation failed: {}", illegalArgumentException.getMessage());
             return ResponseEntity.badRequest()
                     .body(ResponseExpenseDTO.error(illegalArgumentException.getMessage()));
         } catch (Exception exception) {
-            logger.error("Unexpected error during user update: ", exception);
+            logger.error("Unexpected error during expense creation: ", exception);
             return ResponseEntity.internalServerError()
-                    .body(ResponseExpenseDTO.error("An unexpected error occurred during update"));
+                    .body(ResponseExpenseDTO.error("An unexpected error occurred during expense creation"));
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.api.flux.dto.response.user;
+package com.api.flux.dto.response.expense;
 
 import com.api.flux.utils.PaginationInfo;
 import org.springframework.data.domain.Page;
@@ -6,15 +6,15 @@ import org.springframework.data.domain.Page;
 import java.time.Instant;
 import java.util.List;
 
-public record PaginatedUserResponseDTO<T>(
+public record PaginatedExpenseResponseDTO<T>(
         boolean success,
         String message,
         List<T> content,
         PaginationInfo pagination,
         String timestamp
 ) {
-    public static <T> PaginatedUserResponseDTO<T> success(String message, Page<T> page) {
-        return new PaginatedUserResponseDTO<T>(
+    public static <T> PaginatedExpenseResponseDTO<T> success(String message, Page<T> page) {
+        return new PaginatedExpenseResponseDTO<T>(
                 true,
                 message,
                 page.getContent(),
@@ -32,8 +32,8 @@ public record PaginatedUserResponseDTO<T>(
         );
     }
 
-    public static <T> PaginatedUserResponseDTO<T> error(String message) {
-        return new PaginatedUserResponseDTO<>(
+    public static <T> PaginatedExpenseResponseDTO<T> error(String message) {
+        return new PaginatedExpenseResponseDTO<>(
                 false,
                 message,
                 null,

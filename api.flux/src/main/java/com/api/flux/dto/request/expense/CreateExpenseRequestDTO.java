@@ -14,19 +14,20 @@ public record CreateExpenseRequestDTO(@NotNull(message = "The user ID is require
                                       UUID userId,
 
                                       @NotBlank(message = "Title is required")
-                                      @Size(max = 50)
+                                      @Size(max = 50, message = "Title must not exceed 50 characters")
                                       String title,
 
+                                      @Size(max = 255, message = "Description must not exceed 255 characters")
                                       String description,
 
                                       @NotNull(message = "Category is required")
                                       ExpenseCategory category,
 
                                       @NotNull(message = "Amount is required")
-                                      @Positive(message = "The amount is required to be greater than zero")
+                                      @Positive(message = "The amount must be greater than zero")
                                       BigDecimal amount,
 
                                       @NotNull(message = "Transaction date is required")
                                       Instant transactionDate
-                                      ) {
+) {
 }
