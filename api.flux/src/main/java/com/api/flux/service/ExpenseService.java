@@ -7,7 +7,6 @@ import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
 import com.api.flux.dto.response.expense.ResponseExpenseDTO;
 import com.api.flux.entity.Expense;
-import com.api.flux.entity.User;
 import com.api.flux.mapper.ExpenseMapper;
 import com.api.flux.repository.ExpenseRepository;
 import com.api.flux.repository.UserRepository;
@@ -22,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +40,39 @@ public class ExpenseService {
         this.userRepository = userRepository;
     }
 
-    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseDTO>> listExpensesByUserPaginated(UUID userId, int page, int size, String sortBy, String sortDirection) {
+    public ResponseEntity<ResponseExpenseDTO> findExpenseByIdAndValidateOwnership(UUID expenseId, UUID authenticatedUserId) {
+        try {
+            Optional<Expense> optionalExpense = expenseRepository.findById(expenseId);
+
+            if (optionalExpense.isEmpty()) {
+                logger.warn("Expense not found with ID: {}", expenseId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ResponseExpenseDTO.expenseNotFound("Expense not found."));
+            }
+
+            Expense expense = optionalExpense.get();
+
+            if (!expense.getUserId().equals(authenticatedUserId)) {
+                logger.warn("User {} attempted to access expense {} owned by user {}",
+                        authenticatedUserId, expenseId, expense.getUserId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ResponseExpenseDTO.error("You don't have permission to access this expense."));
+            }
+
+            DataExpenseDTO dataExpenseDTO = ExpenseMapper.toDataDTO(expense);
+            logger.info("Expense with ID {} retrieved by user {}", expenseId, authenticatedUserId);
+
+            return ResponseEntity.ok(ResponseExpenseDTO.success("Expense found successfully", dataExpenseDTO));
+
+        } catch (Exception exception) {
+            logger.error("Error while finding expense {}: ", expenseId, exception);
+            return ResponseEntity.internalServerError()
+                    .body(ResponseExpenseDTO.error("Internal server error occurred while retrieving expense"));
+        }
+    }
+
+    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseDTO>> listExpensesByUserPaginated(
+            UUID userId, int page, int size, String sortBy, String sortDirection) {
         try {
             if (!userRepository.existsById(userId)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -83,45 +113,17 @@ public class ExpenseService {
         }
     }
 
-    public ResponseEntity<ResponseExpenseDTO> findExpenseByUserIdAndExpenseId(UUID userId, UUID expenseId) {
-        try {
-            Optional<User> optionalUser = userRepository.findById(userId);
-            Optional<Expense> optionalExpense = expenseRepository.findById(expenseId);
-
-            if (optionalUser.isEmpty()) {
-                logger.warn("User's expenses not found with ID: {}", userId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(ResponseExpenseDTO.userNotFound("User not found."));
-            }
-
-            if (optionalExpense.isEmpty()) {
-                logger.warn("Expense not found with ID: {}", expenseId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(ResponseExpenseDTO.expenseNotFound("Expense not found."));
-            }
-            Expense expense = optionalExpense.get();
-            DataExpenseDTO dataExpenseDTO = ExpenseMapper.toDataDTO(expense);
-
-            logger.info("Expense with ID {} found", expenseId);
-            return ResponseEntity.ok(ResponseExpenseDTO.success("Expense found successfully", dataExpenseDTO));
-        } catch (MethodArgumentTypeMismatchException methodArgumentTypeMismatchException) {
-            logger.error("Please, verify IDs. User ID: {} and Expense ID: {} ", userId, expenseId, methodArgumentTypeMismatchException);
-            return ResponseEntity.internalServerError()
-                    .body(ResponseExpenseDTO.error("Internal server error occurred while retrieving expense. Please, verify IDs."));
-
-        } catch (Exception exception) {
-            logger.error("Error white find expenses for user {}: ", userId, exception);
-            return ResponseEntity.internalServerError()
-                    .body(ResponseExpenseDTO.error("Internal server error occurred while retrieving expense"));
-        }
-    }
-
     @Transactional
-    public ResponseEntity<ResponseExpenseDTO> createExpense(CreateExpenseRequestDTO dto) {
+    public ResponseEntity<ResponseExpenseDTO> createExpense(CreateExpenseRequestDTO dto, UUID authenticatedUserId) {
         try {
-            UUID userId = dto.userId();
-            if (!userRepository.existsById(userId)) {
-                logger.warn("User not found with ID: {}", userId);
+            if (!dto.userId().equals(authenticatedUserId)) {
+                logger.warn("User {} attempted to create expense for user {}", authenticatedUserId, dto.userId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ResponseExpenseDTO.error("You can only create expenses for yourself."));
+            }
+
+            if (!userRepository.existsById(authenticatedUserId)) {
+                logger.warn("User not found with ID: {}", authenticatedUserId);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                         ResponseExpenseDTO.userNotFound("User not found")
                 );
@@ -129,7 +131,7 @@ public class ExpenseService {
 
             Expense expense = new Expense();
             expense.generateId();
-            expense.setUserId(userId);
+            expense.setUserId(authenticatedUserId);
             expense.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
             expense.setDescription(dto.description());
             expense.setCategory(dto.category());
@@ -155,7 +157,8 @@ public class ExpenseService {
         }
     }
 
-    public ResponseEntity<ResponseExpenseDTO> updateExpenseById(UUID id, UpdateExpenseRequestDTO dto) {
+    @Transactional
+    public ResponseEntity<ResponseExpenseDTO> updateExpenseById(UUID id, UpdateExpenseRequestDTO dto, UUID authenticatedUserId) {
         try {
             Optional<Expense> optionalExpense = expenseRepository.findById(id);
 
@@ -167,6 +170,13 @@ public class ExpenseService {
 
             Expense existingExpense = optionalExpense.get();
 
+            if (!existingExpense.getUserId().equals(authenticatedUserId)) {
+                logger.warn("User {} attempted to update expense {} owned by user {}",
+                        authenticatedUserId, id, existingExpense.getUserId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ResponseExpenseDTO.error("You don't have permission to update this expense."));
+            }
+
             if (dto.title() != null && !dto.title().trim().isEmpty()) {
                 existingExpense.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
             }
@@ -176,7 +186,7 @@ public class ExpenseService {
             }
 
             if (dto.category() != null) {
-                existingExpense.setDescription(dto.description());
+                existingExpense.setCategory(dto.category());
             }
 
             if (dto.amount() != null) {
@@ -203,13 +213,26 @@ public class ExpenseService {
         }
     }
 
-    public ResponseEntity<DeleteExpenseResponseDTO> deleteExpenseById(UUID id) {
+    @Transactional
+    public ResponseEntity<DeleteExpenseResponseDTO> deleteExpenseById(UUID id, UUID authenticatedUserId) {
         try {
-            if (!expenseRepository.existsById(id)) {
+            Optional<Expense> optionalExpense = expenseRepository.findById(id);
+
+            if (optionalExpense.isEmpty()) {
                 logger.warn("Delete attempt for non-existent expense with ID: {}", id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(DeleteExpenseResponseDTO.expenseNotFound("Expense not found"));
             }
+
+            Expense expense = optionalExpense.get();
+
+            if (!expense.getUserId().equals(authenticatedUserId)) {
+                logger.warn("User {} attempted to delete expense {} owned by user {}",
+                        authenticatedUserId, id, expense.getUserId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(DeleteExpenseResponseDTO.error("You don't have permission to delete this expense."));
+            }
+
             expenseRepository.deleteById(id);
             logger.info("Expense deleted successfully with ID {}.", id);
             return ResponseEntity.ok(DeleteExpenseResponseDTO.success("Expense deleted successfully."));
@@ -220,6 +243,7 @@ public class ExpenseService {
         }
     }
 
+    @Transactional
     public ResponseEntity<DeleteExpenseResponseDTO> clearAllExpensesByUserId(UUID userId) {
         try {
             if (!userRepository.existsById(userId)) {
@@ -229,7 +253,7 @@ public class ExpenseService {
                 );
             }
 
-            expenseRepository.deleteAll();
+            expenseRepository.deleteByUserId(userId);
             logger.info("All expenses deleted from user ID: {}", userId);
             return ResponseEntity.ok(DeleteExpenseResponseDTO.success("All expenses deleted successfully."));
         } catch (Exception exception) {

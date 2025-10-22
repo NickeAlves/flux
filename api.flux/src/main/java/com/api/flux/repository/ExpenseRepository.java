@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface ExpenseRepository extends MongoRepository<Expense, UUID> {
     Page<Expense> findByUserId(UUID userId, Pageable pageable);
+    void deleteByUserId(UUID userId);
 }
