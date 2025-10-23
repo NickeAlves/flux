@@ -6,11 +6,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface IncomeRepository extends MongoRepository<Income, UUID> {
     Page<Income> findByUserId(UUID userId, Pageable pageable);
+
+    List<Income> findByUserId(UUID userId);
 
     void deleteByUserId(UUID userId);
 }

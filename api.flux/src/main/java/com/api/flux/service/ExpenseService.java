@@ -34,10 +34,14 @@ public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
+    private final BalanceService balanceService;
 
-    public ExpenseService(ExpenseRepository expenseRepository, UserRepository userRepository) {
+    public ExpenseService(ExpenseRepository expenseRepository,
+                          UserRepository userRepository,
+                          BalanceService balanceService) {
         this.expenseRepository = expenseRepository;
         this.userRepository = userRepository;
+        this.balanceService = balanceService;
     }
 
     public ResponseEntity<ExpenseResponseDTO> findExpenseByIdAndValidateOwnership(UUID expenseId, UUID authenticatedUserId) {
@@ -140,6 +144,7 @@ public class ExpenseService {
 
             Expense savedExpense = expenseRepository.save(expense);
             DataExpenseResponseDTO dataExpenseResponseDTO = ExpenseMapper.toDataDTO(savedExpense);
+            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
 
             logger.info("Expense created successfully with ID: {}", savedExpense.getId());
 
@@ -199,6 +204,7 @@ public class ExpenseService {
 
             Expense updatedExpense = expenseRepository.save(existingExpense);
             DataExpenseResponseDTO dataExpenseResponseDTO = ExpenseMapper.toDataDTO(updatedExpense);
+            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
 
             logger.info("Expense updated successfully with ID {}", id);
             return ResponseEntity.ok(ExpenseResponseDTO.success("Expense updated successfully", dataExpenseResponseDTO));
@@ -234,6 +240,8 @@ public class ExpenseService {
             }
 
             expenseRepository.deleteById(id);
+            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
+
             logger.info("Expense deleted successfully with ID {}.", id);
             return ResponseEntity.ok(DeleteExpenseResponseDTO.success("Expense deleted successfully."));
         } catch (Exception exception) {
@@ -254,6 +262,8 @@ public class ExpenseService {
             }
 
             expenseRepository.deleteByUserId(userId);
+            balanceService.recalculateBalanceAfterTransaction(userId);
+
             logger.info("All expenses deleted from user ID: {}", userId);
             return ResponseEntity.ok(DeleteExpenseResponseDTO.success("All expenses deleted successfully."));
         } catch (Exception exception) {

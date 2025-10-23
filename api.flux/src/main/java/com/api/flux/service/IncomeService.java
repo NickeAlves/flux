@@ -35,10 +35,12 @@ public class IncomeService {
 
     private final IncomeRepository incomeRepository;
     private final UserRepository userRepository;
+    private final BalanceService balanceService;
 
-    public IncomeService(IncomeRepository incomeRepository, UserRepository userRepository) {
+    public IncomeService(IncomeRepository incomeRepository, UserRepository userRepository, BalanceService balanceService) {
         this.incomeRepository = incomeRepository;
         this.userRepository = userRepository;
+        this.balanceService = balanceService;
     }
 
     public ResponseEntity<com.api.flux.dto.response.income.IncomeResponseDTO> findIncomeByIdAndValidateOwnership(UUID incomeId, UUID authenticatedUserId) {
@@ -140,6 +142,7 @@ public class IncomeService {
 
             Income savedIncome = incomeRepository.save(income);
             DataIncomeResponseDTO dataIncomeResponseDTO = IncomeMapper.toDataDTO(savedIncome);
+            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
 
             logger.info("Income created successfully with ID: {}", savedIncome.getId());
 
@@ -199,6 +202,7 @@ public class IncomeService {
 
             Income updatedIncome = incomeRepository.save(existingIncome);
             DataIncomeResponseDTO dataIncomeResponseDTO = IncomeMapper.toDataDTO(updatedIncome);
+            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
 
             logger.info("Income updated successfully with ID {}", id);
             return ResponseEntity.ok(IncomeResponseDTO.success("Income updated successfully", dataIncomeResponseDTO));
@@ -234,6 +238,8 @@ public class IncomeService {
             }
 
             incomeRepository.deleteById(id);
+            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
+
             logger.info("Income deleted successfully with ID {}.", id);
             return ResponseEntity.ok(DeleteIncomeResponseDTO.success("Income deleted successfully."));
         } catch (Exception exception) {
@@ -254,6 +260,8 @@ public class IncomeService {
             }
 
             incomeRepository.deleteByUserId(userId);
+            balanceService.recalculateBalanceAfterTransaction(userId);
+
             logger.info("All incomes deleted from user ID: {}", userId);
             return ResponseEntity.ok(DeleteIncomeResponseDTO.success("All incomes deleted successfully."));
         } catch (Exception exception) {
