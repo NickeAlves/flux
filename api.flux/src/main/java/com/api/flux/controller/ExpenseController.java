@@ -2,10 +2,10 @@ package com.api.flux.controller;
 
 import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
 import com.api.flux.dto.request.expense.UpdateExpenseRequestDTO;
-import com.api.flux.dto.response.expense.DataExpenseDTO;
+import com.api.flux.dto.response.expense.DataExpenseResponseDTO;
 import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
+import com.api.flux.dto.response.expense.ExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
-import com.api.flux.dto.response.expense.ResponseExpenseDTO;
 import com.api.flux.security.CustomUserDetails;
 import com.api.flux.service.ExpenseService;
 import jakarta.validation.Valid;
@@ -25,7 +25,7 @@ public class ExpenseController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseExpenseDTO> createExpense(
+    public ResponseEntity<ExpenseResponseDTO> createExpense(
             @Valid @RequestBody CreateExpenseRequestDTO dto,
             Authentication authentication) {
         UUID authenticatedUserId = getUserIdFromAuth(authentication);
@@ -33,7 +33,7 @@ public class ExpenseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseExpenseDTO> updateExpenseById(
+    public ResponseEntity<ExpenseResponseDTO> updateExpenseById(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateExpenseRequestDTO dto,
             Authentication authentication) {
@@ -42,7 +42,7 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseDTO>> listMyExpenses(
+    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseResponseDTO>> listMyExpenses(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "transactionDate") String sortBy,
@@ -53,7 +53,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/{expenseId}")
-    public ResponseEntity<ResponseExpenseDTO> getExpenseById(
+    public ResponseEntity<ExpenseResponseDTO> getExpenseById(
             @PathVariable UUID expenseId,
             Authentication authentication) {
         UUID authenticatedUserId = getUserIdFromAuth(authentication);

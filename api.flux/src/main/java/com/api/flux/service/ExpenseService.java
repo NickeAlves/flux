@@ -2,10 +2,10 @@ package com.api.flux.service;
 
 import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
 import com.api.flux.dto.request.expense.UpdateExpenseRequestDTO;
-import com.api.flux.dto.response.expense.DataExpenseDTO;
+import com.api.flux.dto.response.expense.DataExpenseResponseDTO;
 import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
+import com.api.flux.dto.response.expense.ExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
-import com.api.flux.dto.response.expense.ResponseExpenseDTO;
 import com.api.flux.entity.Expense;
 import com.api.flux.mapper.ExpenseMapper;
 import com.api.flux.repository.ExpenseRepository;
@@ -40,14 +40,14 @@ public class ExpenseService {
         this.userRepository = userRepository;
     }
 
-    public ResponseEntity<ResponseExpenseDTO> findExpenseByIdAndValidateOwnership(UUID expenseId, UUID authenticatedUserId) {
+    public ResponseEntity<ExpenseResponseDTO> findExpenseByIdAndValidateOwnership(UUID expenseId, UUID authenticatedUserId) {
         try {
             Optional<Expense> optionalExpense = expenseRepository.findById(expenseId);
 
             if (optionalExpense.isEmpty()) {
                 logger.warn("Expense not found with ID: {}", expenseId);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(ResponseExpenseDTO.expenseNotFound("Expense not found."));
+                        .body(ExpenseResponseDTO.expenseNotFound("Expense not found."));
             }
 
             Expense expense = optionalExpense.get();
@@ -56,22 +56,22 @@ public class ExpenseService {
                 logger.warn("User {} attempted to access expense {} owned by user {}",
                         authenticatedUserId, expenseId, expense.getUserId());
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(ResponseExpenseDTO.error("You don't have permission to access this expense."));
+                        .body(ExpenseResponseDTO.error("You don't have permission to access this expense."));
             }
 
-            DataExpenseDTO dataExpenseDTO = ExpenseMapper.toDataDTO(expense);
+            DataExpenseResponseDTO dataExpenseResponseDTO = ExpenseMapper.toDataDTO(expense);
             logger.info("Expense with ID {} retrieved by user {}", expenseId, authenticatedUserId);
 
-            return ResponseEntity.ok(ResponseExpenseDTO.success("Expense found successfully", dataExpenseDTO));
+            return ResponseEntity.ok(ExpenseResponseDTO.success("Expense found successfully", dataExpenseResponseDTO));
 
         } catch (Exception exception) {
             logger.error("Error while finding expense {}: ", expenseId, exception);
             return ResponseEntity.internalServerError()
-                    .body(ResponseExpenseDTO.error("Internal server error occurred while retrieving expense"));
+                    .body(ExpenseResponseDTO.error("Internal server error occurred while retrieving expense"));
         }
     }
 
-    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseDTO>> listExpensesByUserPaginated(
+    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseResponseDTO>> listExpensesByUserPaginated(
             UUID userId, int page, int size, String sortBy, String sortDirection) {
         try {
             if (!userRepository.existsById(userId)) {
@@ -94,7 +94,7 @@ public class ExpenseService {
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
             Page<Expense> expensesPage = expenseRepository.findByUserId(userId, pageable);
 
-            Page<DataExpenseDTO> expenseDTOsPage = expensesPage.map(expense -> new DataExpenseDTO(
+            Page<DataExpenseResponseDTO> expenseDTOsPage = expensesPage.map(expense -> new DataExpenseResponseDTO(
                     expense.getId(),
                     expense.getUserId(),
                     expense.getTitle(),
@@ -114,18 +114,18 @@ public class ExpenseService {
     }
 
     @Transactional
-    public ResponseEntity<ResponseExpenseDTO> createExpense(CreateExpenseRequestDTO dto, UUID authenticatedUserId) {
+    public ResponseEntity<ExpenseResponseDTO> createExpense(CreateExpenseRequestDTO dto, UUID authenticatedUserId) {
         try {
             if (!dto.userId().equals(authenticatedUserId)) {
                 logger.warn("User {} attempted to create expense for user {}", authenticatedUserId, dto.userId());
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(ResponseExpenseDTO.error("You can only create expenses for yourself."));
+                        .body(ExpenseResponseDTO.error("You can only create expenses for yourself."));
             }
 
             if (!userRepository.existsById(authenticatedUserId)) {
                 logger.warn("User not found with ID: {}", authenticatedUserId);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                        ResponseExpenseDTO.userNotFound("User not found")
+                        ExpenseResponseDTO.userNotFound("User not found")
                 );
             }
 
@@ -139,33 +139,33 @@ public class ExpenseService {
             expense.setTransactionDate(dto.transactionDate());
 
             Expense savedExpense = expenseRepository.save(expense);
-            DataExpenseDTO dataExpenseDTO = ExpenseMapper.toDataDTO(savedExpense);
+            DataExpenseResponseDTO dataExpenseResponseDTO = ExpenseMapper.toDataDTO(savedExpense);
 
             logger.info("Expense created successfully with ID: {}", savedExpense.getId());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(
-                    ResponseExpenseDTO.success("Expense created successfully!", dataExpenseDTO)
+                    ExpenseResponseDTO.success("Expense created successfully!", dataExpenseResponseDTO)
             );
         } catch (IllegalArgumentException illegalArgumentException) {
             logger.warn("Expense creation validation failed: {}", illegalArgumentException.getMessage());
             return ResponseEntity.badRequest()
-                    .body(ResponseExpenseDTO.error(illegalArgumentException.getMessage()));
+                    .body(ExpenseResponseDTO.error(illegalArgumentException.getMessage()));
         } catch (Exception exception) {
             logger.error("Unexpected error during expense creation: ", exception);
             return ResponseEntity.internalServerError()
-                    .body(ResponseExpenseDTO.error("An unexpected error occurred during expense creation"));
+                    .body(ExpenseResponseDTO.error("An unexpected error occurred during expense creation"));
         }
     }
 
     @Transactional
-    public ResponseEntity<ResponseExpenseDTO> updateExpenseById(UUID id, UpdateExpenseRequestDTO dto, UUID authenticatedUserId) {
+    public ResponseEntity<ExpenseResponseDTO> updateExpenseById(UUID id, UpdateExpenseRequestDTO dto, UUID authenticatedUserId) {
         try {
             Optional<Expense> optionalExpense = expenseRepository.findById(id);
 
             if (optionalExpense.isEmpty()) {
                 logger.warn("Expense not found with ID: {}", id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(ResponseExpenseDTO.expenseNotFound("Expense not found"));
+                        .body(ExpenseResponseDTO.expenseNotFound("Expense not found"));
             }
 
             Expense existingExpense = optionalExpense.get();
@@ -174,7 +174,7 @@ public class ExpenseService {
                 logger.warn("User {} attempted to update expense {} owned by user {}",
                         authenticatedUserId, id, existingExpense.getUserId());
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(ResponseExpenseDTO.error("You don't have permission to update this expense."));
+                        .body(ExpenseResponseDTO.error("You don't have permission to update this expense."));
             }
 
             if (dto.title() != null && !dto.title().trim().isEmpty()) {
@@ -198,18 +198,18 @@ public class ExpenseService {
             }
 
             Expense updatedExpense = expenseRepository.save(existingExpense);
-            DataExpenseDTO dataExpenseDTO = ExpenseMapper.toDataDTO(updatedExpense);
+            DataExpenseResponseDTO dataExpenseResponseDTO = ExpenseMapper.toDataDTO(updatedExpense);
 
             logger.info("Expense updated successfully with ID {}", id);
-            return ResponseEntity.ok(ResponseExpenseDTO.success("Expense updated successfully", dataExpenseDTO));
+            return ResponseEntity.ok(ExpenseResponseDTO.success("Expense updated successfully", dataExpenseResponseDTO));
         } catch (IllegalArgumentException illegalArgumentException) {
             logger.warn("Update validation failed: {}", illegalArgumentException.getMessage());
             return ResponseEntity.badRequest()
-                    .body(ResponseExpenseDTO.error(illegalArgumentException.getMessage()));
+                    .body(ExpenseResponseDTO.error(illegalArgumentException.getMessage()));
         } catch (Exception exception) {
             logger.error("Unexpected error during expense update: ", exception);
             return ResponseEntity.internalServerError()
-                    .body(ResponseExpenseDTO.error("An unexpected error occurred during update"));
+                    .body(ExpenseResponseDTO.error("An unexpected error occurred during update"));
         }
     }
 
