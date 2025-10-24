@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/balances")
+@RequestMapping("/v1/balances")
 public class BalanceController {
     private final BalanceService balanceService;
 

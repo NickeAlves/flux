@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/calendar")
+@RequestMapping("/v1/api/calendar")
 public class GoogleCalendarController {
     private final GoogleCalendarService googleCalendarService;
 

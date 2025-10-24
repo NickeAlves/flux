@@ -1,13 +1,7 @@
 package com.api.flux.controller;
 
-import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
-import com.api.flux.dto.request.expense.UpdateExpenseRequestDTO;
 import com.api.flux.dto.request.income.CreateIncomeRequestDTO;
 import com.api.flux.dto.request.income.UpdateIncomeRequestDTO;
-import com.api.flux.dto.response.expense.DataExpenseResponseDTO;
-import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
-import com.api.flux.dto.response.expense.ExpenseResponseDTO;
-import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
 import com.api.flux.dto.response.income.DataIncomeResponseDTO;
 import com.api.flux.dto.response.income.DeleteIncomeResponseDTO;
 import com.api.flux.dto.response.income.IncomeResponseDTO;
@@ -22,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/incomes")
+@RequestMapping("/v1/incomes")
 public class IncomeController {
     private final IncomeService incomeService;
 

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/expenses")
+@RequestMapping("/v1/expenses")
 public class ExpenseController {
     private final ExpenseService expenseService;
 
