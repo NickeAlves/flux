@@ -1,5 +1,6 @@
 package com.api.flux.controller;
 
+import com.api.flux.dto.response.gemini.PromptResponseDTO;
 import com.api.flux.service.GeminiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +18,7 @@ public class GeminiController {
     }
 
     @PostMapping
-    public ResponseEntity generateText(@RequestBody String prompt) {
+    public ResponseEntity<PromptResponseDTO> generateText(@RequestBody String prompt) {
         return geminiService.generatePrompt(prompt);
     }
 }

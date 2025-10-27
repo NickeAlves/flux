@@ -1,5 +1,6 @@
 package com.api.flux.service;
 
+import com.api.flux.dto.response.gemini.PromptResponseDTO;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +13,7 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    public ResponseEntity generatePrompt(String prompt) {
+    public ResponseEntity<PromptResponseDTO> generatePrompt(String prompt) {
         try {
             Client client = new Client();
             Client.builder().apiKey(geminiApiKey);
@@ -28,7 +29,7 @@ public class GeminiService {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(PromptResponseDTO.success("Generated successfully!", response.text()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
