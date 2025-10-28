@@ -1,14 +1,10 @@
 package com.api.flux.service;
 
 import com.api.flux.dto.response.balance.*;
-import com.api.flux.dto.response.expense.DataExpenseResponseDTO;
-import com.api.flux.dto.response.income.DataIncomeResponseDTO;
 import com.api.flux.entity.Balance;
 import com.api.flux.entity.Expense;
 import com.api.flux.entity.Income;
 import com.api.flux.mapper.BalanceMapper;
-import com.api.flux.mapper.ExpenseMapper;
-import com.api.flux.mapper.IncomeMapper;
 import com.api.flux.repository.BalanceRepository;
 import com.api.flux.repository.ExpenseRepository;
 import com.api.flux.repository.IncomeRepository;

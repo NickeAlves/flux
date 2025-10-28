@@ -4,6 +4,7 @@ import com.api.flux.dto.request.user.UpdateUserRequestDTO;
 import com.api.flux.dto.response.user.*;
 import com.api.flux.security.CustomUserDetails;
 import com.api.flux.service.UserService;
+import com.api.flux.utils.GetUserIdFromAuth;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseUserDTO> findUserById(@PathVariable UUID id, Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         if (!authenticatedUserId.equals(id)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ResponseUserDTO.error("You can only access your own profile."));
@@ -49,7 +50,7 @@ public class UserController {
     public ResponseEntity<UpdateUserResponseDTO> updateUser(@PathVariable UUID id,
                                                             @Valid @RequestBody UpdateUserRequestDTO dto,
                                                             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         if (!authenticatedUserId.equals(id)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(UpdateUserResponseDTO.error("You can only update your own account."));
@@ -59,7 +60,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<DeleteUserResponseDTO> deleteUserById(@PathVariable UUID id, Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         if (!authenticatedUserId.equals(id)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(DeleteUserResponseDTO.error("You can only delete your own account."));
@@ -69,12 +70,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<ResponseUserDTO> getAuthenticatedUser(Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return userService.getUserById(authenticatedUserId);
-    }
-
-    private UUID getUserIdFromAuth(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userDetails.getId();
     }
 }

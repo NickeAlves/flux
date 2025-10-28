@@ -6,8 +6,8 @@ import com.api.flux.dto.response.expense.DataExpenseResponseDTO;
 import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
 import com.api.flux.dto.response.expense.ExpenseResponseDTO;
 import com.api.flux.dto.response.expense.PaginatedExpenseResponseDTO;
-import com.api.flux.security.CustomUserDetails;
 import com.api.flux.service.ExpenseService;
+import com.api.flux.utils.GetUserIdFromAuth;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,7 +28,7 @@ public class ExpenseController {
     public ResponseEntity<ExpenseResponseDTO> createExpense(
             @Valid @RequestBody CreateExpenseRequestDTO dto,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return expenseService.createExpense(dto, authenticatedUserId);
     }
 
@@ -37,7 +37,7 @@ public class ExpenseController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateExpenseRequestDTO dto,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return expenseService.updateExpenseById(id, dto, authenticatedUserId);
     }
 
@@ -48,7 +48,7 @@ public class ExpenseController {
             @RequestParam(defaultValue = "transactionDate") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return expenseService.listExpensesByUserPaginated(authenticatedUserId, page, size, sortBy, sortDirection);
     }
 
@@ -56,7 +56,7 @@ public class ExpenseController {
     public ResponseEntity<ExpenseResponseDTO> getExpenseById(
             @PathVariable UUID expenseId,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return expenseService.findExpenseByIdAndValidateOwnership(expenseId, authenticatedUserId);
     }
 
@@ -64,19 +64,14 @@ public class ExpenseController {
     public ResponseEntity<DeleteExpenseResponseDTO> deleteExpenseById(
             @PathVariable UUID id,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return expenseService.deleteExpenseById(id, authenticatedUserId);
     }
 
     @DeleteMapping("/clear")
     public ResponseEntity<DeleteExpenseResponseDTO> clearAllMyExpenses(
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return expenseService.clearAllExpensesByUserId(authenticatedUserId);
-    }
-
-    private UUID getUserIdFromAuth(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userDetails.getId();
     }
 }

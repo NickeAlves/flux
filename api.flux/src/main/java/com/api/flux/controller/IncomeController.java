@@ -6,8 +6,8 @@ import com.api.flux.dto.response.income.DataIncomeResponseDTO;
 import com.api.flux.dto.response.income.DeleteIncomeResponseDTO;
 import com.api.flux.dto.response.income.IncomeResponseDTO;
 import com.api.flux.dto.response.income.PaginatedIncomeResponseDTO;
-import com.api.flux.security.CustomUserDetails;
 import com.api.flux.service.IncomeService;
+import com.api.flux.utils.GetUserIdFromAuth;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,7 +28,7 @@ public class IncomeController {
     public ResponseEntity<IncomeResponseDTO> createIncome(
             @Valid @RequestBody CreateIncomeRequestDTO dto,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return incomeService.createIncome(dto, authenticatedUserId);
     }
 
@@ -37,7 +37,7 @@ public class IncomeController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateIncomeRequestDTO dto,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return incomeService.updateIncomeById(id, dto, authenticatedUserId);
     }
 
@@ -48,7 +48,7 @@ public class IncomeController {
             @RequestParam(defaultValue = "transactionDate") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return incomeService.listIncomesByUserPaginated(authenticatedUserId, page, size, sortBy, sortDirection);
     }
 
@@ -56,7 +56,7 @@ public class IncomeController {
     public ResponseEntity<IncomeResponseDTO> getIncomeById(
             @PathVariable UUID incomeId,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return incomeService.findIncomeByIdAndValidateOwnership(incomeId, authenticatedUserId);
     }
 
@@ -64,19 +64,14 @@ public class IncomeController {
     public ResponseEntity<DeleteIncomeResponseDTO> deleteIncomeById(
             @PathVariable UUID id,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return incomeService.deleteIncomeById(id, authenticatedUserId);
     }
 
     @DeleteMapping("/clear")
     public ResponseEntity<DeleteIncomeResponseDTO> clearAllMyIncomes(
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return incomeService.clearAllIncomesByUserId(authenticatedUserId);
-    }
-
-    private UUID getUserIdFromAuth(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userDetails.getId();
     }
 }

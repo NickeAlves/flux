@@ -1,8 +1,8 @@
 package com.api.flux.controller;
 
 import com.api.flux.dto.response.balance.*;
-import com.api.flux.security.CustomUserDetails;
 import com.api.flux.service.BalanceService;
+import com.api.flux.utils.GetUserIdFromAuth;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,7 +22,7 @@ public class BalanceController {
 
     @GetMapping("/current")
     public ResponseEntity<BalanceResponseDTO> getCurrentBalance(Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return balanceService.getCurrentBalance(authenticatedUserId);
     }
 
@@ -31,7 +31,7 @@ public class BalanceController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return balanceService.getBalanceHistory(authenticatedUserId, page, size);
     }
 
@@ -42,30 +42,26 @@ public class BalanceController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return balanceService.getBalanceHistoryByPeriod(authenticatedUserId, startDate, endDate, page, size);
     }
 
     @GetMapping("/expenses-incomes")
     public ResponseEntity<ExpensesAndIncomesDTO> getExpensesAndIncomeHistoryByUserId(Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return balanceService.getExpensesAndIncomeHistoryByUserId(authenticatedUserId);
     }
 
     @PostMapping("/calculate")
     public ResponseEntity<BalanceResponseDTO> calculateBalance(Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return balanceService.calculateAndSaveBalance(authenticatedUserId);
     }
 
     @DeleteMapping("/clear")
     public ResponseEntity<DeleteBalanceResponseDTO> clearBalanceHistory(Authentication authentication) {
-        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return balanceService.clearAllBalances(authenticatedUserId);
     }
 
-    private UUID getUserIdFromAuth(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userDetails.getId();
-    }
 }
