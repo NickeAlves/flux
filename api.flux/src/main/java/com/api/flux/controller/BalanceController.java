@@ -1,9 +1,6 @@
 package com.api.flux.controller;
 
-import com.api.flux.dto.response.balance.BalanceResponseDTO;
-import com.api.flux.dto.response.balance.DataBalanceResponseDTO;
-import com.api.flux.dto.response.balance.DeleteBalanceResponseDTO;
-import com.api.flux.dto.response.balance.PaginatedBalanceResponseDTO;
+import com.api.flux.dto.response.balance.*;
 import com.api.flux.security.CustomUserDetails;
 import com.api.flux.service.BalanceService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -47,6 +44,12 @@ public class BalanceController {
             Authentication authentication) {
         UUID authenticatedUserId = getUserIdFromAuth(authentication);
         return balanceService.getBalanceHistoryByPeriod(authenticatedUserId, startDate, endDate, page, size);
+    }
+
+    @GetMapping("/expenses-incomes")
+    public ResponseEntity<ExpensesAndIncomesDTO> getExpensesAndIncomeHistoryByUserId(Authentication authentication) {
+        UUID authenticatedUserId = getUserIdFromAuth(authentication);
+        return balanceService.getExpensesAndIncomeHistoryByUserId(authenticatedUserId);
     }
 
     @PostMapping("/calculate")

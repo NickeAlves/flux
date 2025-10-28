@@ -1,13 +1,14 @@
 package com.api.flux.service;
 
-import com.api.flux.dto.response.balance.BalanceResponseDTO;
-import com.api.flux.dto.response.balance.DataBalanceResponseDTO;
-import com.api.flux.dto.response.balance.DeleteBalanceResponseDTO;
-import com.api.flux.dto.response.balance.PaginatedBalanceResponseDTO;
+import com.api.flux.dto.response.balance.*;
+import com.api.flux.dto.response.expense.DataExpenseResponseDTO;
+import com.api.flux.dto.response.income.DataIncomeResponseDTO;
 import com.api.flux.entity.Balance;
 import com.api.flux.entity.Expense;
 import com.api.flux.entity.Income;
 import com.api.flux.mapper.BalanceMapper;
+import com.api.flux.mapper.ExpenseMapper;
+import com.api.flux.mapper.IncomeMapper;
 import com.api.flux.repository.BalanceRepository;
 import com.api.flux.repository.ExpenseRepository;
 import com.api.flux.repository.IncomeRepository;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,7 +52,7 @@ public class BalanceService {
     public ResponseEntity<BalanceResponseDTO> getCurrentBalance(UUID authenticatedUserId) {
         try {
             if (!userRepository.existsById(authenticatedUserId)) {
-                logger.warn("User not found with ID: {}", authenticatedUserId);
+                logger.warn("User not found with ID: {}, please check user ID.", authenticatedUserId);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(BalanceResponseDTO.userNotFound("User not found"));
             }
@@ -73,6 +75,25 @@ public class BalanceService {
             logger.error("Error retrieving current balance for user {}: ", authenticatedUserId, exception);
             return ResponseEntity.internalServerError()
                     .body(BalanceResponseDTO.error("Internal server error occurred while retrieving balance"));
+        }
+    }
+
+    public ResponseEntity<ExpensesAndIncomesDTO> getExpensesAndIncomeHistoryByUserId(UUID authenticatedUserId) {
+        try {
+            if (!userRepository.existsById(authenticatedUserId)) {
+                logger.warn("User not found with ID: {}, please check user ID.", authenticatedUserId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ExpensesAndIncomesDTO.userNotFound("User not found."));
+            }
+
+            List<Expense> expenses = expenseRepository.findByUserId(authenticatedUserId);
+            List<Income> incomes = incomeRepository.findByUserId(authenticatedUserId);
+
+            return ResponseEntity.ok(ExpensesAndIncomesDTO.success("Expenses and incomes found successfully!", expenses, incomes));
+        } catch (Exception exception) {
+            logger.error("Error retrieving expenses and incomes for user {}: ", authenticatedUserId, exception);
+            return ResponseEntity.internalServerError()
+                    .body(ExpensesAndIncomesDTO.error("Internal server error occurred while retrieving balance"));
         }
     }
 
