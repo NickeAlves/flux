@@ -4,6 +4,8 @@ import com.api.flux.dto.response.balance.ExpensesAndIncomesDTO;
 import com.api.flux.dto.response.gemini.PromptResponseDTO;
 import com.api.flux.entity.Expense;
 import com.api.flux.entity.Income;
+import com.api.flux.entity.User;
+import com.api.flux.repository.UserRepository;
 import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
@@ -21,22 +23,25 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class GeminiService {
     private static final Logger logger = LoggerFactory.getLogger(GeminiService.class);
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm")
             .withZone(ZoneId.systemDefault());
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
     private final BalanceService balanceService;
+    private final UserRepository userRepository;
 
-    public GeminiService(BalanceService balanceService) {
+    public GeminiService(BalanceService balanceService, UserRepository userRepository) {
         this.balanceService = balanceService;
+        this.userRepository = userRepository;
     }
 
     public ResponseEntity<PromptResponseDTO> generatePrompt(String prompt, UUID userId) {
@@ -46,6 +51,7 @@ public class GeminiService {
                     .build();
 
             String financialContext = buildFinancialContext(userId);
+            String nameAndLastName = getUserNameAndLastName(userId);
 
             GenerateContentConfig config = GenerateContentConfig.builder()
                     .systemInstruction(Content.fromParts(Part.fromText(
@@ -59,9 +65,11 @@ public class GeminiService {
 
             String fullPrompt = String.format(
                     "System Instruction: Please provide all responses in plain text without Markdown formatting. " +
-                            "Do not use asterisks, backslashes, or formatting characters.\n\n" +
-                            "USER FINANCIAL CONTEXT:\n%s\n\n" +
-                            "USER QUESTION:\n%s",
+                            "Do not use asterisks, backslashes, or formatting characters." +
+                            "USER NAME AND LAST NAME: %s " +
+                            "USER FINANCIAL CONTEXT:%s " +
+                            "USER QUESTION:%s",
+                    nameAndLastName,
                     financialContext,
                     prompt
             );
@@ -205,5 +213,25 @@ public class GeminiService {
                 )));
 
         return sb.toString();
+    }
+
+    private String getUserNameAndLastName(UUID userId) {
+        String nameAndLastName = "";
+
+        try {
+            Optional<User> optionalUser = userRepository.findById(userId);
+
+            if (optionalUser.isEmpty()) {
+                nameAndLastName = "User not found";
+                return nameAndLastName;
+            }
+
+            User user = optionalUser.get();
+
+            return nameAndLastName + user.getName() + " " + user.getLastName();
+        } catch (Exception exception) {
+            return "Internal Server error: " + exception;
+        }
+
     }
 }
