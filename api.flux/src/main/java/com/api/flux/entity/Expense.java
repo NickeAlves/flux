@@ -1,7 +1,8 @@
 package com.api.flux.entity;
 
 import com.api.flux.enums.ExpenseCategory;
-import jakarta.persistence.PrePersist;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,6 +10,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@Setter
+@Getter
 @Document(collection = "expenses")
 public class Expense {
     @Id
@@ -22,6 +25,8 @@ public class Expense {
     private Instant transactionDate;
 
     public Expense() {
+        this.id = UUID.randomUUID();
+        this.transactionDate = Instant.now();
     }
 
     public Expense(UUID userId, String title, String description, ExpenseCategory category, BigDecimal amount, Instant transactionDate) {
@@ -30,65 +35,6 @@ public class Expense {
         this.description = description;
         this.category = category;
         this.amount = amount;
-        this.transactionDate = transactionDate;
-    }
-
-    @PrePersist
-    public void generateId() {
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public ExpenseCategory getCategory() {
-        return category;
-    }
-
-    public void setCategory(ExpenseCategory category) {
-        this.category = category;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public Instant getTransactionDate() {
-        return transactionDate;
-    }
-
-    public void setTransactionDate(Instant transactionDate) {
         this.transactionDate = transactionDate;
     }
 }

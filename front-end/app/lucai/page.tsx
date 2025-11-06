@@ -1,0 +1,188 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { Send, Bot, User, Loader2 } from "lucide-react";
+import VerticalNavBar from "@/components/VerticalNavBar";
+import api from "@/services/api";
+
+export default function LucAI() {
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      text: "Olá! Como posso ajudar você hoje?",
+      sender: "ai",
+      timestamp: new Date(),
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = {
+      id: messages.length + 1,
+      text: input,
+      sender: "user",
+      timestamp: new Date(),
+    };
+
+    setMessages([...messages, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const response = await api.generateText(input);
+
+      const aiMessage = {
+        id: messages.length + 2,
+        text: response.text || response.message || "Resposta não disponível",
+        sender: "ai",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Error generating response:", error);
+      const errorMessage = {
+        id: messages.length + 2,
+        text: "Desculpe, ocorreu um erro ao processar sua mensagem.",
+        sender: "ai",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <VerticalNavBar />
+      <div className="flex flex-col w-full max-w-5xl mx-auto p-8">
+        <div className="flex flex-col h-[90vh] backdrop-blur-2xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
+          <header className="flex flex-row justify-between items-center p-6 border-b border-white/20 bg-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                <Bot className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-xl font-semibold text-white">LucAI</p>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto p-6 space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex items-start gap-3 ${
+                  message.sender === "user" ? "flex-row-reverse" : "flex-row"
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    message.sender === "ai"
+                      ? "bg-gradient-to-br from-purple-500 to-pink-500"
+                      : "bg-gradient-to-br from-blue-500 to-cyan-500"
+                  }`}
+                >
+                  {message.sender === "ai" ? (
+                    <Bot className="w-5 h-5 text-white" />
+                  ) : (
+                    <User className="w-5 h-5 text-white" />
+                  )}
+                </div>
+                <div
+                  className={`max-w-[70%] p-4 rounded-2xl ${
+                    message.sender === "user"
+                      ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white"
+                      : "bg-white/10 backdrop-blur-sm border border-white/20 text-white"
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed">{message.text}</p>
+                  <p className="text-xs flex justify-end mt-4">
+                    {" "}
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-500">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div className="max-w-[70%] p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <span
+                        className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                        style={{ animationDelay: "0ms" }}
+                      ></span>
+                      <span
+                        className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                        style={{ animationDelay: "150ms" }}
+                      ></span>
+                      <span
+                        className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                        style={{ animationDelay: "300ms" }}
+                      ></span>
+                    </div>
+                    <span className="text-xs text-white/50">Digitando...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </main>
+
+          <div className="p-6 border-t border-white/20 bg-white/5">
+            <div className="flex gap-3 items-end">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Digite sua mensagem..."
+                rows={1}
+                disabled={isLoading}
+                className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5 text-white" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

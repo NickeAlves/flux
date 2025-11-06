@@ -52,7 +52,6 @@ public class AuthService {
             }
 
             User user = new User();
-            user.generateId();
             user.setName(TextUtils.capitalizeFirstLetters(dto.name()));
             user.setLastName(TextUtils.capitalizeFirstLetters(dto.lastName()));
             user.setDateOfBirth(dto.dateOfBirth());

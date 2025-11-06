@@ -6,7 +6,10 @@ import com.api.flux.service.GeminiService;
 import com.api.flux.utils.GetUserIdFromAuth;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -24,6 +27,6 @@ public class GeminiController {
             @RequestBody PromptRequestDTO request,
             Authentication authentication) {
         UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
-        return geminiService.generatePrompt(request.getPrompt(), authenticatedUserId);
+        return geminiService.generatePrompt(request.prompt(), authenticatedUserId);
     }
 }

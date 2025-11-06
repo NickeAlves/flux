@@ -2,9 +2,8 @@ package com.api.flux.service;
 
 import com.api.flux.dto.response.balance.ExpensesAndIncomesDTO;
 import com.api.flux.dto.response.gemini.PromptResponseDTO;
-import com.api.flux.entity.Expense;
-import com.api.flux.entity.Income;
-import com.api.flux.entity.User;
+import com.api.flux.entity.*;
+import com.api.flux.repository.LucaAIRepository;
 import com.api.flux.repository.UserRepository;
 import com.google.genai.Client;
 import com.google.genai.types.Content;
@@ -19,12 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,10 +35,12 @@ public class GeminiService {
 
     private final BalanceService balanceService;
     private final UserRepository userRepository;
+    private final LucaAIRepository lucaAIRepository;
 
-    public GeminiService(BalanceService balanceService, UserRepository userRepository) {
+    public GeminiService(BalanceService balanceService, UserRepository userRepository, LucaAIRepository lucaAIRepository) {
         this.balanceService = balanceService;
         this.userRepository = userRepository;
+        this.lucaAIRepository = lucaAIRepository;
     }
 
     public ResponseEntity<PromptResponseDTO> generatePrompt(String prompt, UUID userId) {
@@ -49,6 +48,18 @@ public class GeminiService {
             Client client = Client.builder()
                     .apiKey(geminiApiKey)
                     .build();
+
+            LucAI lucAI = lucaAIRepository.findByUserId(userId)
+                    .orElseGet(() -> new LucAI(
+                            userId,
+                            new ArrayList<>(),
+                            new HashMap<>()
+                    ));
+
+            String conversationContext = lucAI.getConversationHistory().stream()
+                    .map(entry -> "User: " + entry.getUserMessage() + "\nLucAI: "
+                            + entry.getAiResponse())
+                    .collect(Collectors.joining("\n"));
 
             String financialContext = buildFinancialContext(userId);
             String nameAndLastName = getUserNameAndLastName(userId);
@@ -63,16 +74,17 @@ public class GeminiService {
                     )))
                     .build();
 
-            String fullPrompt = String.format(
-                    "System Instruction: Please provide all responses in plain text without Markdown formatting. " +
-                            "Do not use asterisks, backslashes, or formatting characters." +
-                            "USER NAME AND LAST NAME: %s " +
-                            "USER FINANCIAL CONTEXT:%s " +
-                            "USER QUESTION:%s",
-                    nameAndLastName,
-                    financialContext,
-                    prompt
-            );
+            String fullPrompt = String.format("""
+                    System: Financial assistant for %s.
+                    Financial Context:
+                    %s
+                    
+                    Conversation History:
+                    %s
+                    
+                    New User Input:
+                    %s
+                    """, nameAndLastName, financialContext, conversationContext, prompt);
 
             GenerateContentResponse response = client.models.generateContent(
                     "gemini-2.5-pro",
@@ -80,14 +92,20 @@ public class GeminiService {
                     config
             );
 
+            String aiResponse = response.text();
+
             if (Objects.requireNonNull(response.text()).isEmpty()) {
                 logger.error("Empty response from Gemini API");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(PromptResponseDTO.error("Internal server error."));
             }
 
+            lucAI.getConversationHistory().add(new LucAIPrompt(prompt, aiResponse, Instant.now()));
+            lucAI.setUpdatedAt(Instant.now());
+            lucaAIRepository.save(lucAI);
+
             logger.info("Prompt generated successfully for user {}", userId);
-            return ResponseEntity.ok(PromptResponseDTO.success("Generated successfully!", response.text()));
+            return ResponseEntity.ok(PromptResponseDTO.success("Generated successfully!", aiResponse));
 
         } catch (Exception e) {
             logger.error("Error generating prompt for user {}: ", userId, e);

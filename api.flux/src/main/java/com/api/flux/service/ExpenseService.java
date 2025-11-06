@@ -134,7 +134,6 @@ public class ExpenseService {
             }
 
             Expense expense = new Expense();
-            expense.generateId();
             expense.setUserId(authenticatedUserId);
             expense.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
             expense.setDescription(dto.description());

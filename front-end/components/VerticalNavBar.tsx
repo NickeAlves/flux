@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Home,
   Wallet,
@@ -9,22 +11,45 @@ import {
   User,
 } from "lucide-react";
 
+import Link from "next/link";
+
 export default function VerticalNavBar() {
   return (
     <div className="flex items-center justify-center min-h-screen from-slate-900 via-slate-800 to-slate-900 p-8">
       <nav className="flex flex-col justify-between items-center py-3 px-2 h-[600px] backdrop-blur-2xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl">
         <div className="flex flex-col gap-1">
-          <NavItem icon={<Home size={20} />} label="Dashboard" />
-          <NavItem icon={<Wallet size={20} />} label="Balance" />
-          <NavItem icon={<ArrowUpCircle size={20} />} label="Expenses" />
-          <NavItem icon={<ArrowDownCircle size={20} />} label="Incomes" />
-          <NavItem icon={<Calendar size={20} />} label="Google Calendar" />
-          <NavItem icon={<Sparkles size={20} />} label="LucAI" />
+          <Link href="/dashboard" aria-label="Dashboard">
+            <NavItem icon={<Home size={20} />} label="Dashboard" />
+          </Link>
+
+          <Link href="/balance" aria-label="Balance">
+            <NavItem icon={<Wallet size={20} />} label="Balance" />
+          </Link>
+
+          <Link href="/expenses" aria-label="Expenses">
+            <NavItem icon={<ArrowUpCircle size={20} />} label="Expenses" />
+          </Link>
+
+          <Link href="/incomes" aria-label="Incomes">
+            <NavItem icon={<ArrowDownCircle size={20} />} label="Incomes" />
+          </Link>
+
+          <Link href="/google-calendar" aria-label="Google Calendar">
+            <NavItem icon={<Calendar size={20} />} label="Google Calendar" />
+          </Link>
+
+          <Link href="/lucai" aria-label="LucAI">
+            <NavItem icon={<Sparkles size={20} />} label="LucAI" />
+          </Link>
         </div>
 
         <div className="flex flex-col gap-1 pt-3 border-t border-white/10">
-          <NavItem icon={<Settings size={20} />} label="Settings" />
-          <NavItem icon={<User size={20} />} label="Profile" />
+          <Link href="/settings" aria-label="Settings">
+            <NavItem icon={<Settings size={20} />} label="Settings" />
+          </Link>
+          <Link href="/profile" aria-label="Profile">
+            <NavItem icon={<User size={20} />} label="Profile" />
+          </Link>
         </div>
       </nav>
     </div>

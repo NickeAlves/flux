@@ -132,7 +132,6 @@ public class IncomeService {
             }
 
             Income income = new Income();
-            income.generateId();
             income.setUserId(authenticatedUserId);
             income.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
             income.setDescription(dto.description());

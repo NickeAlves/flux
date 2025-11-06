@@ -3,7 +3,7 @@ package com.api.flux.mapper;
 import com.api.flux.dto.response.balance.DataBalanceResponseDTO;
 import com.api.flux.entity.Balance;
 
-public class BalanceMapper {
+public final class BalanceMapper {
     private BalanceMapper() {}
 
     public static DataBalanceResponseDTO toDataDTO(Balance balance) {
