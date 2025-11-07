@@ -74,13 +74,13 @@ export default function LucAI() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="flex min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
       <VerticalNavBar />
       <div className="flex flex-col w-full max-w-5xl mx-auto p-8">
         <div className="flex flex-col h-[90vh] backdrop-blur-2xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
           <header className="flex flex-row justify-between items-center p-6 border-b border-white/20 bg-white/5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                 <Bot className="w-6 h-6 text-white" />
               </div>
               <p className="text-xl font-semibold text-white">LucAI</p>
@@ -96,10 +96,10 @@ export default function LucAI() {
                 }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                     message.sender === "ai"
-                      ? "bg-gradient-to-br from-purple-500 to-pink-500"
-                      : "bg-gradient-to-br from-blue-500 to-cyan-500"
+                      ? "bg-linear-to-br from-purple-500 to-pink-500"
+                      : "bg-linear-to-br from-blue-500 to-cyan-500"
                   }`}
                 >
                   {message.sender === "ai" ? (
@@ -111,7 +111,7 @@ export default function LucAI() {
                 <div
                   className={`max-w-[70%] p-4 rounded-2xl ${
                     message.sender === "user"
-                      ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white"
+                      ? "bg-linear-to-br from-blue-500 to-cyan-500 text-white"
                       : "bg-white/10 backdrop-blur-sm border border-white/20 text-white"
                   }`}
                 >
@@ -129,7 +129,7 @@ export default function LucAI() {
 
             {isLoading && (
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-500">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-linear-to-br from-purple-500 to-pink-500">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div className="max-w-[70%] p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
@@ -171,7 +171,7 @@ export default function LucAI() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 text-white animate-spin" />

@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8080";
+const API_URL = "http://localhost:8080/v1";
 
 const getAuthHeaders = (isJson = true) => {
   const token = localStorage.getItem("auth_token");
@@ -59,7 +59,7 @@ const api = {
     profileImageUrl
   ) {
     try {
-      const response = await fetch(`${API_URL}/v1/auth/register`, {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -88,7 +88,7 @@ const api = {
 
   async login(email, password) {
     try {
-      const response = await fetch(`${API_URL}/v1/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({ email, password }),
@@ -110,7 +110,7 @@ const api = {
 
   async generateText(prompt) {
     try {
-      const response = await fetch(`${API_URL}/v1/api/gemini`, {
+      const response = await fetch(`${API_URL}/api/gemini`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({ prompt }),
@@ -131,9 +131,30 @@ const api = {
     }
   },
 
+  async getConversationByUserId() {
+    try {
+      const response = await fetch(`${API_URL}/lucai`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      });
+      const data = await handleResponse(response);
+
+      if (data) {
+        return data;
+      } else {
+        throw new Error("Error while get conversation history.");
+      }
+    } catch (error) {
+      console.error(
+        "Detailed error while trying to get conversation history: ",
+        error
+      );
+    }
+  },
+
   async isAuthenticated() {
     try {
-      const response = await fetch(`${API_URL}/v1/users/me`, {
+      const response = await fetch(`${API_URL}/users/me`, {
         method: "GET",
         headers: getAuthHeaders(),
       });

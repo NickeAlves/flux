@@ -12,43 +12,78 @@ import {
 } from "lucide-react";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function VerticalNavBar() {
+  const pathname = usePathname();
+
   return (
     <div className="flex items-center justify-center min-h-screen from-slate-900 via-slate-800 to-slate-900 p-8">
       <nav className="flex flex-col justify-between items-center py-3 px-2 h-[600px] backdrop-blur-2xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl">
         <div className="flex flex-col gap-1">
           <Link href="/dashboard" aria-label="Dashboard">
-            <NavItem icon={<Home size={20} />} label="Dashboard" />
+            <NavItem
+              icon={<Home size={20} />}
+              label="Dashboard"
+              isActive={pathname == "/dashboard"}
+            />
           </Link>
 
           <Link href="/balance" aria-label="Balance">
-            <NavItem icon={<Wallet size={20} />} label="Balance" />
+            <NavItem
+              icon={<Wallet size={20} />}
+              label="Balance"
+              isActive={pathname == "/balance"}
+            />
           </Link>
 
           <Link href="/expenses" aria-label="Expenses">
-            <NavItem icon={<ArrowUpCircle size={20} />} label="Expenses" />
+            <NavItem
+              icon={<ArrowUpCircle size={20} />}
+              label="Expenses"
+              isActive={pathname == "/expenses"}
+            />
           </Link>
 
           <Link href="/incomes" aria-label="Incomes">
-            <NavItem icon={<ArrowDownCircle size={20} />} label="Incomes" />
+            <NavItem
+              icon={<ArrowDownCircle size={20} />}
+              label="Incomes"
+              isActive={pathname == "/incomes"}
+            />
           </Link>
 
           <Link href="/google-calendar" aria-label="Google Calendar">
-            <NavItem icon={<Calendar size={20} />} label="Google Calendar" />
+            <NavItem
+              icon={<Calendar size={20} />}
+              label="Google Calendar"
+              isActive={pathname == "/google-calendar"}
+            />
           </Link>
 
           <Link href="/lucai" aria-label="LucAI">
-            <NavItem icon={<Sparkles size={20} />} label="LucAI" />
+            <NavItem
+              icon={<Sparkles size={20} />}
+              label="LucAI"
+              isActive={pathname == "/lucai"}
+            />
           </Link>
         </div>
 
         <div className="flex flex-col gap-1 pt-3 border-t border-white/10">
           <Link href="/settings" aria-label="Settings">
-            <NavItem icon={<Settings size={20} />} label="Settings" />
+            <NavItem
+              icon={<Settings size={20} />}
+              label="Settings"
+              isActive={pathname == "/settings"}
+            />
           </Link>
           <Link href="/profile" aria-label="Profile">
-            <NavItem icon={<User size={20} />} label="Profile" />
+            <NavItem
+              icon={<User size={20} />}
+              label="Profile"
+              isActive={pathname == "/profile"}
+            />
           </Link>
         </div>
       </nav>
@@ -56,10 +91,23 @@ export default function VerticalNavBar() {
   );
 }
 
-function NavItem({ icon, label }) {
+interface NavItemProps {
+  icon: React.ReactNode;
+  label: string;
+  isActive: boolean;
+}
+
+function NavItem({ icon, label, isActive }: NavItemProps) {
   return (
     <div className="group relative">
-      <button className="p-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 ease-out active:scale-95">
+      <button
+        className={`p-3 rounded-xl transition-all duration-200 ease-out ${
+          isActive
+            ? "bg-white/20 text-white shadow-lg cursor-default"
+            : "text-white/70 hover:text-white hover:bg-white/10 active:scale-95"
+        }`}
+        disabled={isActive}
+      >
         {icon}
       </button>
 
