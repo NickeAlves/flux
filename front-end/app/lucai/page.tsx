@@ -1,11 +1,58 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { UUID } from "crypto";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import VerticalNavBar from "@/components/VerticalNavBar";
 import api from "@/services/api";
+import LucAINavBar from "@/components/LucAINavBar";
+
+interface userData {
+  id: UUID;
+  name: string;
+  lastName: string;
+  email: string;
+  dateOfBirth: Date;
+  age: number;
+  profileImageUrl: string;
+}
+
+interface ConversationHistory {
+  success: boolean;
+  message: string;
+  lucai: {
+    id: string;
+    userId: string;
+    conversationHistory: Array<{
+      userMessage: string;
+      aiResponse: string;
+      timestamp: string;
+    }>;
+    longTermContext: Record<string, never> | object;
+    createdAt: string;
+    updatedAt: string;
+  };
+  timestamp: string;
+}
 
 export default function LucAI() {
+  const [user] = useState<userData | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const userDataString = localStorage.getItem("user");
+    if (userDataString) {
+      try {
+        return JSON.parse(userDataString);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        return null;
+      }
+    }
+    return null;
+  });
+
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -77,14 +124,9 @@ export default function LucAI() {
     <div className="flex min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
       <VerticalNavBar />
       <div className="flex flex-col w-full max-w-5xl mx-auto p-8">
-        <div className="flex flex-col h-[90vh] backdrop-blur-2xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="flex flex-col h-[90vh] backdrop-blur-2xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl overflow-visible">
           <header className="flex flex-row justify-between items-center p-6 border-b border-white/20 bg-white/5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-xl font-semibold text-white">LucAI</p>
-            </div>
+            <LucAINavBar />
           </header>
 
           <main className="flex-1 overflow-y-auto p-6 space-y-4">
