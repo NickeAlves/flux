@@ -38,7 +38,7 @@ const Login: NextPage = () => {
     };
 
     checkAuthentication();
-  }, []);
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -85,20 +85,20 @@ const Login: NextPage = () => {
         <meta name="theme-color" content="#ffffff" />
       </head>
 
-      <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-black/30 to-slate-900">
+      <div className="min-h-screen w-full relative overflow-hidden bg-linear-to-br from-slate-900 via-black/30 to-slate-900">
         <div className="absolute inset-0 overflow-hidden">
           <div
-            className={`absolute top-0 -left-4 w-96 h-96 bg-black rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-[3000ms] ${
+            className={`absolute top-0 -left-4 w-96 h-96 bg-black rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-3000 ${
               mounted ? "translate-x-12 translate-y-12" : ""
             }`}
           />
           <div
-            className={`absolute top-0 -right-4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-[4000ms] ${
+            className={`absolute top-0 -right-4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-4000 ${
               mounted ? "-translate-x-12 translate-y-24" : ""
             }`}
           />
           <div
-            className={`absolute -bottom-8 left-20 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-[3500ms] ${
+            className={`absolute -bottom-8 left-20 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-3500 ${
               mounted ? "translate-y-12" : ""
             }`}
           />
@@ -122,8 +122,8 @@ const Login: NextPage = () => {
             }`}
           >
             <div className="relative w-20 h-20">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-blue-500 rounded-3xl blur-lg opacity-60" />
-              <div className="relative w-20 h-20 bg-gradient-to-br from-purple-400 to-blue-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/50 transform hover:scale-105 transition-transform duration-300">
+              <div className="absolute inset-0 bg-linear-to-br from-purple-400 to-blue-500 rounded-3xl blur-lg opacity-60" />
+              <div className="relative w-20 h-20 bg-linear-to-br from-purple-400 to-blue-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/50 transform hover:scale-105 transition-transform duration-300">
                 <Image
                   src="/flux-logo.png"
                   alt="Flux Logo"
@@ -208,7 +208,7 @@ const Login: NextPage = () => {
                   className={`w-full py-3.5 mt-6 text-sm font-semibold text-white rounded-xl transition-all duration-300 transform ${
                     isSubmitting
                       ? "bg-white/10 cursor-not-allowed"
-                      : "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-purple-500/50"
+                      : "bg-linear-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-purple-500/50"
                   }`}
                 >
                   {isSubmitting ? (
