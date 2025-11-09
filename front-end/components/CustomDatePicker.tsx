@@ -143,7 +143,7 @@ export default function MacOSDatePicker({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-left flex items-center justify-between hover:border-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-transparent transition-all duration-300"
+        className="w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-left flex items-center justify-between hover:border-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-transparent duration-300"
       >
         <span className={value ? "text-white" : "text-gray-400"}>
           {value || "Select date"}
@@ -157,7 +157,7 @@ export default function MacOSDatePicker({
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-2 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors shrink-0"
             >
               <ChevronLeft className="w-5 h-5 text-gray-600" />
             </button>
@@ -191,7 +191,7 @@ export default function MacOSDatePicker({
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-2 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors shrink-0"
             >
               <ChevronRight className="w-5 h-5 text-gray-600" />
             </button>

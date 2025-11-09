@@ -17,24 +17,6 @@ interface userData {
   profileImageUrl: string;
 }
 
-interface ConversationHistory {
-  success: boolean;
-  message: string;
-  lucai: {
-    id: string;
-    userId: string;
-    conversationHistory: Array<{
-      userMessage: string;
-      aiResponse: string;
-      timestamp: string;
-    }>;
-    longTermContext: Record<string, never> | object;
-    createdAt: string;
-    updatedAt: string;
-  };
-  timestamp: string;
-}
-
 export default function LucAI() {
   const [user] = useState<userData | null>(() => {
     if (typeof window === "undefined") {
@@ -53,14 +35,28 @@ export default function LucAI() {
     return null;
   });
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "Olá! Como posso ajudar você hoje?",
-      sender: "ai",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const userName = user?.name || "usuário";
+
+    const welcomeMessages = [
+      `Bem-vindo de volta, ${userName}! É ótimo ver você por aqui novamente.`,
+      `Olá, ${userName}! Pronto para cuidar das suas finanças hoje?`,
+      `Oi, ${userName}! Vamos revisar suas despesas e planejar seus próximos passos?`,
+    ];
+
+    const initialMessage =
+      welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+
+    return [
+      {
+        id: 1,
+        text: initialMessage,
+        sender: "ai",
+        timestamp: new Date(),
+      },
+    ];
+  });
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 

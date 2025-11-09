@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Bot, User, Loader2, ChevronRight, ArrowLeft } from "lucide-react";
 import Modal from "@/components/Modal";
