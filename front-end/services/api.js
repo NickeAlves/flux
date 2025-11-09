@@ -108,6 +108,29 @@ const api = {
     }
   },
 
+  async logout() {
+    try {
+      const response = await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          "Error while trying to log out: " +
+            response.status +
+            "\nMessage: " +
+            response.text
+        );
+      }
+
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user");
+    } catch (error) {
+      console.error("Detailed error in login: ", error);
+      throw error;
+    }
+  },
+
   async generateText(prompt) {
     try {
       const response = await fetch(`${API_URL}/api/gemini`, {

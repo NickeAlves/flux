@@ -4,7 +4,6 @@ import VerticalNavBar from "@/components/VerticalNavBar";
 import { UUID } from "crypto";
 import Image from "next/image";
 import { useState } from "react";
-import { LogOut } from "lucide-react";
 
 interface userData {
   id: UUID;
@@ -53,17 +52,6 @@ export default function Dashboard() {
             >
               Hello, {user?.name}!
             </p>
-          </div>
-
-          <div className="group relative">
-            <button className="p-2 rounded-xl hover:bg-white/10 transition active:scale-95 text-white">
-              <LogOut size={20} />
-            </button>
-
-            <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-gray-800/95 backdrop-blur-sm text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap shadow-lg border border-white/10 pointer-events-none">
-              Exit
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full border-4 border-transparent border-b-gray-800/95"></div>
-            </div>
           </div>
         </header>
 
