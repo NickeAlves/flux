@@ -50,6 +50,18 @@ const handleResponse = async (response) => {
 };
 
 const api = {
+  async isAuthenticated() {
+    try {
+      const response = await fetch(`${API_URL}/users/me`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      });
+      return response.ok;
+    } catch (err) {
+      console.error("Error while verification:", err);
+      return false;
+    }
+  },
   async register(
     name,
     lastName,
@@ -175,16 +187,30 @@ const api = {
     }
   },
 
-  async isAuthenticated() {
+  async getCurrentBalance() {
     try {
-      const response = await fetch(`${API_URL}/users/me`, {
+      const response = await fetch(`${API_URL}/balances/current`, {
         method: "GET",
         headers: getAuthHeaders(),
       });
-      return response.ok;
-    } catch (err) {
-      console.error("Error while verification:", err);
-      return false;
+
+      const data = await handleResponse(response);
+
+      if (!data) {
+        throw new Error(
+          "Error while trying to get current balance: " +
+            response.status +
+            "\nMessage: " +
+            response.text
+        );
+      }
+      return data.data;
+    } catch (error) {
+      console.error(
+        "Detailed error while trying to get current balance: ",
+        error
+      );
+      throw error;
     }
   },
 };

@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import VerticalNavBar from "@/components/VerticalNavBar";
 import { UUID } from "crypto";
 import Image from "next/image";
-import { useState } from "react";
+import api from "@/services/api";
+import { Loader2, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 
-interface userData {
+interface UserData {
   id: UUID;
   name: string;
   lastName: string;
@@ -15,8 +17,36 @@ interface userData {
   profileImageUrl: string;
 }
 
+interface Balance {
+  id: UUID;
+  userId: UUID;
+  totalIncome: number;
+  totalExpense: number;
+  currentBalance: number;
+  calculatedAt: string;
+  createdAt: string;
+}
+
 export default function Dashboard() {
-  const [user] = useState<userData | null>(() => {
+  const [balanceData, setBalanceData] = useState<Balance | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const data = await api.getCurrentBalance();
+        setBalanceData(data);
+      } catch (err) {
+        console.error("Error while get current balance:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const [user] = useState<UserData | null>(() => {
     if (typeof window === "undefined") {
       return null;
     }
@@ -32,6 +62,16 @@ export default function Dashboard() {
     }
     return null;
   });
+
+  if (loading) {
+    return (
+      <div>
+        <div className="flex justify-center items-center py-10">
+          <Loader2 className="w-6 h-6 text-white animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -54,12 +94,48 @@ export default function Dashboard() {
             </p>
           </div>
         </header>
+        <div className="flex flex-row pr-8 gap-6">
+          <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+            <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
+              <Wallet size={20} className="text-white" />
+            </div>
 
-        <main className="flex flex-col p-8 justify-center items-center flex-1">
-          <div className="w-full max-w-6xl p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-            <p className="text-white">dashboard</p>
+            <div className="pt-2">
+              <p className="text-white text-xl">
+                Balance: <br />
+              </p>
+              <p>$ {balanceData?.currentBalance?.toFixed(2) ?? "0.00"}</p>
+            </div>
           </div>
-        </main>
+
+          <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+            <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
+              <ArrowUpCircle size={20} className="text-white" />
+            </div>
+
+            <div className="pt-2">
+              <p className="text-white text-xl">
+                Expenses: <br />
+              </p>
+              <p>$ {balanceData?.totalExpense?.toFixed(2) ?? "0.00"}</p>
+            </div>
+          </div>
+
+          <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+            <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
+              <ArrowDownCircle size={20} className="text-white" />
+            </div>
+
+            <div className="pt-2">
+              <p className="text-white text-xl">
+                Total Incomes: <br />
+              </p>
+              <p>$ {balanceData?.totalIncome?.toFixed(2) ?? "0.00"}</p>
+            </div>
+          </div>
+        </div>
+
+        <main className="flex flex-row p-4 pt-4 flex-1"></main>
       </div>
     </div>
   );
