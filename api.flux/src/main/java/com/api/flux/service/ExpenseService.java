@@ -22,10 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class ExpenseService {
@@ -158,6 +155,42 @@ public class ExpenseService {
             logger.error("Unexpected error during expense creation: ", exception);
             return ResponseEntity.internalServerError()
                     .body(ExpenseResponseDTO.error("An unexpected error occurred during expense creation"));
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<List<ExpenseResponseDTO>> createMultipleExpenses(List<CreateExpenseRequestDTO> dtoList, UUID authenticatedUserId) {
+        try {
+            List<ExpenseResponseDTO> responses = new ArrayList<>();
+
+            for (CreateExpenseRequestDTO dto : dtoList) {
+                if (!dto.userId().equals(authenticatedUserId)) {
+                    responses.add(ExpenseResponseDTO.error("Cannot create expense for another user"));
+                    continue;
+                }
+
+                Expense expense = new Expense();
+                expense.setUserId(authenticatedUserId);
+                expense.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
+                expense.setDescription(dto.description());
+                expense.setCategory(dto.category());
+                expense.setAmount(dto.amount());
+                expense.setTransactionDate(dto.transactionDate());
+
+                Expense savedExpense = expenseRepository.save(expense);
+                DataExpenseResponseDTO dataExpenseResponseDTO = ExpenseMapper.toDataDTO(savedExpense);
+                responses.add(ExpenseResponseDTO.success("Expense created successfully!", dataExpenseResponseDTO));
+
+                logger.info("Expense with ID {} created successfully!", savedExpense.getId());
+            }
+
+            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(responses);
+        } catch (Exception exception) {
+            logger.error("Unexpected error during batch expense creation: ", exception);
+            return ResponseEntity.internalServerError()
+                    .body(List.of(ExpenseResponseDTO.error("An unexpected error occurred during expense creation.")));
         }
     }
 

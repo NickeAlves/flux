@@ -23,10 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class IncomeService {
@@ -156,6 +153,42 @@ public class IncomeService {
             logger.error("Unexpected error during income creation: ", exception);
             return ResponseEntity.internalServerError()
                     .body(com.api.flux.dto.response.income.IncomeResponseDTO.error("An unexpected error occurred during income creation"));
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<List<IncomeResponseDTO>> createMultipleIncomes(List<CreateIncomeRequestDTO> dtoList, UUID authenticatedUserId) {
+        try {
+            List<IncomeResponseDTO> responses = new ArrayList<>();
+
+            for (CreateIncomeRequestDTO dto : dtoList) {
+                if (!dto.userId().equals(authenticatedUserId)) {
+                    responses.add(IncomeResponseDTO.error("Cannot created income for another user."));
+                    continue;
+                }
+
+                Income income = new Income();
+                income.setUserId(authenticatedUserId);
+                income.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
+                income.setDescription(dto.description());
+                income.setCategory(dto.category());
+                income.setAmount(dto.amount());
+                income.setTransactionDate(dto.transactionDate());
+
+                Income savedIncome = incomeRepository.save(income);
+                DataIncomeResponseDTO dataIncomeResponseDTO = IncomeMapper.toDataDTO(savedIncome);
+                responses.add(IncomeResponseDTO.success("Income created successfully!", dataIncomeResponseDTO));
+
+                logger.info("Income with ID {} created successfully!", savedIncome.getId());
+            }
+
+            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(responses);
+        } catch (Exception exception) {
+            logger.error("Unexpected error during batch income creation: ", exception);
+            return ResponseEntity.internalServerError()
+                    .body(List.of(IncomeResponseDTO.error("An unexpected error occurred during income creation.")));
         }
     }
 

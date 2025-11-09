@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,6 +31,14 @@ public class IncomeController {
             Authentication authentication) {
         UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
         return incomeService.createIncome(dto, authenticatedUserId);
+    }
+
+    @PostMapping("/create-multiple-incomes")
+    public ResponseEntity<List<IncomeResponseDTO>> createMultipleIncomes(
+            @Valid @RequestBody List<CreateIncomeRequestDTO> dtoList,
+            Authentication authentication) {
+        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
+        return incomeService.createMultipleIncomes(dtoList, authenticatedUserId);
     }
 
     @PutMapping("/{id}")
