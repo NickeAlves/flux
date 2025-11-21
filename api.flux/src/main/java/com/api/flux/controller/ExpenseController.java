@@ -2,7 +2,6 @@ package com.api.flux.controller;
 
 import com.api.flux.dto.request.expense.CreateExpenseRequestDTO;
 import com.api.flux.dto.request.expense.UpdateExpenseRequestDTO;
-import com.api.flux.dto.request.income.CreateIncomeRequestDTO;
 import com.api.flux.dto.response.expense.DataExpenseResponseDTO;
 import com.api.flux.dto.response.expense.DeleteExpenseResponseDTO;
 import com.api.flux.dto.response.expense.ExpenseResponseDTO;
@@ -27,19 +26,11 @@ public class ExpenseController {
     }
 
     @PostMapping
-    public ResponseEntity<ExpenseResponseDTO> createExpense(
-            @Valid @RequestBody CreateExpenseRequestDTO dto,
-            Authentication authentication) {
-        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
-        return expenseService.createExpense(dto, authenticatedUserId);
-    }
-
-    @PostMapping("/create-multiple-expenses")
-    public ResponseEntity<List<ExpenseResponseDTO>> createMultipleExpenses(
+    public ResponseEntity<List<ExpenseResponseDTO>> createExpenses(
             @Valid @RequestBody List<CreateExpenseRequestDTO> dtoList,
             Authentication authentication) {
         UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
-        return expenseService.createMultipleExpenses(dtoList, authenticatedUserId);
+        return expenseService.createExpenses(dtoList, authenticatedUserId);
     }
 
     @PutMapping("/{id}")

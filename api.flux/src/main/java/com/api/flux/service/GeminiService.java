@@ -69,7 +69,7 @@ public class GeminiService {
                     .systemInstruction(Content.fromParts(Part.fromText(
                             "You are LucAI, a friendly and helpful financial assistant. " +
                                     "Your role is to help users manage their personal finances.\n\n" +
-                                    "Today is: " + Instant.now().toString() + "\n\n"+
+                                    "Today is: " + Instant.now().toString() + "\n\n" +
                                     "Conversational Style Rules:\n" +
                                     "- NEVER SAY greetings such as 'Olá', 'Oi', 'Hello', or similar unless it is clearly the first message of a new conversation.\n" +
                                     "- CONTINUE ongoing conversations naturally, without any introductory phrases or greetings.\n" +
@@ -416,8 +416,14 @@ public class GeminiService {
                     if (part.text().isPresent() && !part.text().get().isEmpty()) {
                         finalResponse.append(part.text().get());
                     }
+                }
 
+                List<Part> functionResponseParts = new ArrayList<>();
+                boolean hasFunctionCalls = false;
+
+                for (Part part : parts) {
                     if (part.functionCall().isPresent()) {
+                        hasFunctionCalls = true;
                         FunctionCall functionCall = part.functionCall().get();
 
                         if (functionCall.name().isPresent() && functionCall.args().isPresent()) {
@@ -428,38 +434,43 @@ public class GeminiService {
 
                             String functionResult = executeFunctionCall(functionName, args, userId);
 
-                            if (candidate.content().isPresent()) {
-                                conversationHistory.add(candidate.content().get());
-                            }
-
-                            conversationHistory.add(Content.fromParts(
+                            functionResponseParts.add(
                                     Part.fromFunctionResponse(functionName, Map.of("result", functionResult))
-                            ));
-
-                            try {
-                                GenerateContentConfig followUpConfig = GenerateContentConfig.builder()
-                                        .systemInstruction(Content.fromParts(Part.fromText(
-                                                "You are LucAI. Generate a friendly confirmation message based on the function result."
-                                        )))
-                                        .build();
-
-                                GenerateContentResponse followUpResponse = client.models.generateContent(
-                                        "gemini-2.0-flash-exp",
-                                        conversationHistory,
-                                        followUpConfig
-                                );
-
-                                if (!followUpResponse.text().isEmpty() && !followUpResponse.text().isEmpty()) {
-                                    if (finalResponse.length() > 0) {
-                                        finalResponse.append("\n\n");
-                                    }
-                                    finalResponse.append(followUpResponse.text());
-                                }
-                            } catch (Exception e) {
-                                logger.error("Error in follow-up call: ", e);
-                                finalResponse.append("\n\nTransaction completed, but there was an error generating the confirmation message.");
-                            }
+                            );
                         }
+                    }
+                }
+
+                if (hasFunctionCalls) {
+                    if (candidate.content().isPresent()) {
+                        conversationHistory.add(candidate.content().get());
+                    }
+
+                    conversationHistory.add(Content.builder().parts(functionResponseParts).build());
+
+                    try {
+                        GenerateContentConfig followUpConfig = GenerateContentConfig.builder()
+                                .systemInstruction(Content.fromParts(Part.fromText(
+                                        "You are LucAI. Generate a friendly confirmation message based on the function result. " +
+                                                "Be concise and natural."
+                                )))
+                                .build();
+
+                        GenerateContentResponse followUpResponse = client.models.generateContent(
+                                "gemini-2.0-flash-exp",
+                                conversationHistory,
+                                followUpConfig
+                        );
+
+                        if (followUpResponse.text() != null && !followUpResponse.text().isEmpty()) {
+                            if (!finalResponse.isEmpty()) {
+                                finalResponse.append("\n\n");
+                            }
+                            finalResponse.append(followUpResponse.text());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error in follow-up call: ", e);
+                        finalResponse.append("\n\nTransaction completed, but there was an error generating the confirmation message.");
                     }
                 }
             }
@@ -467,7 +478,7 @@ public class GeminiService {
 
         String aiResponse = finalResponse.toString().trim();
 
-        if (aiResponse.isEmpty() && !response.text().isEmpty()) {
+        if (aiResponse.isEmpty() && response.text() != null && !response.text().isEmpty()) {
             aiResponse = response.text();
         }
 
@@ -522,7 +533,6 @@ public class GeminiService {
                 return "Error: Missing required fields (title, category, or amount)";
             }
 
-
             CreateExpenseRequestDTO dto = new CreateExpenseRequestDTO(
                     userId,
                     title,
@@ -532,14 +542,17 @@ public class GeminiService {
                     transactionDate
             );
 
-            ResponseEntity<ExpenseResponseDTO> response = expenseService.createExpense(dto, userId);
+            List<CreateExpenseRequestDTO> dtoList = new ArrayList<>();
+            dtoList.add(dto);
+
+            ResponseEntity<List<ExpenseResponseDTO>> response = expenseService.createExpenses(dtoList, userId);
 
             if (response.getStatusCode() == HttpStatus.CREATED) {
                 logger.info("Expense created successfully via LucAI: {} - ${}", title, amountNum);
                 return String.format("SUCCESS: Expense '%s' of $%.2f in category %s was created successfully.",
                         title, amountNum.doubleValue(), categoryStr);
             } else {
-                String errorMsg = response.getBody() != null ? response.getBody().message() : "Unknown error";
+                String errorMsg = response.getBody() != null ? response.getBody().toString() : "Unknown error";
                 logger.warn("Failed to create expense via LucAI: {}", errorMsg);
                 return "ERROR: Failed to create expense - " + errorMsg;
             }
@@ -591,14 +604,17 @@ public class GeminiService {
                     transactionDate
             );
 
-            ResponseEntity<IncomeResponseDTO> response = incomeService.createIncome(dto, userId);
+            List<CreateIncomeRequestDTO> dtoList = new ArrayList<>();
+            dtoList.add(dto);
+
+            ResponseEntity<List<IncomeResponseDTO>> response = incomeService.createIncomes(dtoList, userId);
 
             if (response.getStatusCode() == HttpStatus.CREATED) {
                 logger.info("Income created successfully via LucAI: {} - ${}", title, amountNum);
                 return String.format("SUCCESS: Income '%s' of $%.2f in category %s was created successfully.",
                         title, amountNum.doubleValue(), categoryStr);
             } else {
-                String errorMsg = response.getBody() != null ? response.getBody().message() : "Unknown error";
+                String errorMsg = response.getBody() != null ? response.getBody().toString() : "Unknown error";
                 logger.warn("Failed to create income via LucAI: {}", errorMsg);
                 return "ERROR: Failed to create income - " + errorMsg;
             }

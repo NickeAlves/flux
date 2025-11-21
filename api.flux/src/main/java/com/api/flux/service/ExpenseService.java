@@ -115,51 +115,7 @@ public class ExpenseService {
     }
 
     @Transactional
-    public ResponseEntity<ExpenseResponseDTO> createExpense(CreateExpenseRequestDTO dto, UUID authenticatedUserId) {
-        try {
-            if (!dto.userId().equals(authenticatedUserId)) {
-                logger.warn("User {} attempted to create expense for user {}", authenticatedUserId, dto.userId());
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(ExpenseResponseDTO.error("You can only create expenses for yourself."));
-            }
-
-            if (!userRepository.existsById(authenticatedUserId)) {
-                logger.warn("User not found with ID: {}", authenticatedUserId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                        ExpenseResponseDTO.userNotFound("User not found")
-                );
-            }
-
-            Expense expense = new Expense();
-            expense.setUserId(authenticatedUserId);
-            expense.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
-            expense.setDescription(dto.description());
-            expense.setCategory(dto.category());
-            expense.setAmount(dto.amount());
-            expense.setTransactionDate(dto.transactionDate());
-
-            Expense savedExpense = expenseRepository.save(expense);
-            DataExpenseResponseDTO dataExpenseResponseDTO = ExpenseMapper.toDataDTO(savedExpense);
-            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
-
-            logger.info("Expense created successfully with ID: {}", savedExpense.getId());
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    ExpenseResponseDTO.success("Expense created successfully!", dataExpenseResponseDTO)
-            );
-        } catch (IllegalArgumentException illegalArgumentException) {
-            logger.warn("Expense creation validation failed: {}", illegalArgumentException.getMessage());
-            return ResponseEntity.badRequest()
-                    .body(ExpenseResponseDTO.error(illegalArgumentException.getMessage()));
-        } catch (Exception exception) {
-            logger.error("Unexpected error during expense creation: ", exception);
-            return ResponseEntity.internalServerError()
-                    .body(ExpenseResponseDTO.error("An unexpected error occurred during expense creation"));
-        }
-    }
-
-    @Transactional
-    public ResponseEntity<List<ExpenseResponseDTO>> createMultipleExpenses(List<CreateExpenseRequestDTO> dtoList, UUID authenticatedUserId) {
+    public ResponseEntity<List<ExpenseResponseDTO>> createExpenses(List<CreateExpenseRequestDTO> dtoList, UUID authenticatedUserId) {
         try {
             List<ExpenseResponseDTO> responses = new ArrayList<>();
 

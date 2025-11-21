@@ -26,19 +26,11 @@ public class IncomeController {
     }
 
     @PostMapping
-    public ResponseEntity<IncomeResponseDTO> createIncome(
-            @Valid @RequestBody CreateIncomeRequestDTO dto,
-            Authentication authentication) {
-        UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
-        return incomeService.createIncome(dto, authenticatedUserId);
-    }
-
-    @PostMapping("/create-multiple-incomes")
-    public ResponseEntity<List<IncomeResponseDTO>> createMultipleIncomes(
+    public ResponseEntity<List<IncomeResponseDTO>> createIncomes(
             @Valid @RequestBody List<CreateIncomeRequestDTO> dtoList,
             Authentication authentication) {
         UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
-        return incomeService.createMultipleIncomes(dtoList, authenticatedUserId);
+        return incomeService.createIncomes(dtoList, authenticatedUserId);
     }
 
     @PutMapping("/{id}")

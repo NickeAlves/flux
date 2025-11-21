@@ -17,6 +17,15 @@ interface userData {
   profileImageUrl: string;
 }
 
+interface Message {
+  id: number;
+  text: string;
+  sender: "user" | "ai";
+  timestamp: Date;
+  isStreaming?: boolean;
+  isConnecting?: boolean;
+}
+
 export default function LucAI() {
   const [user] = useState<userData | null>(() => {
     if (typeof window === "undefined") {
@@ -35,7 +44,7 @@ export default function LucAI() {
     return null;
   });
 
-  const [messages, setMessages] = useState(() => {
+  const [messages, setMessages] = useState<Message[]>(() => {
     const userName = user?.name || "usuário";
 
     const welcomeMessages = [
@@ -73,37 +82,79 @@ export default function LucAI() {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage = {
-      id: messages.length + 1,
+    const userMessage: Message = {
+      id: Date.now(),
       text: input,
       sender: "user",
       timestamp: new Date(),
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
     setIsLoading(true);
 
+    const aiMessageId = Date.now() + 1;
+    const aiMessage: Message = {
+      id: aiMessageId,
+      text: "",
+      sender: "ai",
+      timestamp: new Date(),
+      isStreaming: false,
+      isConnecting: true,
+    };
+
+    setMessages((prev) => [...prev, aiMessage]);
+
     try {
-      const response = await api.generateText(input);
+      let firstChunkReceived = false;
 
-      const aiMessage = {
-        id: messages.length + 2,
-        text: response.text || response.message || "Resposta não disponível",
-        sender: "ai",
-        timestamp: new Date(),
-      };
+      await api.lucAi(currentInput, (chunk: string) => {
+        if (!firstChunkReceived) {
+          firstChunkReceived = true;
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === aiMessageId
+                ? {
+                    ...msg,
+                    isConnecting: false,
+                    isStreaming: true,
+                    text: chunk,
+                  }
+                : msg
+            )
+          );
+        } else {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === aiMessageId ? { ...msg, text: msg.text + chunk } : msg
+            )
+          );
+        }
+      });
 
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === aiMessageId
+            ? { ...msg, isStreaming: false, isConnecting: false }
+            : msg
+        )
+      );
     } catch (error) {
       console.error("Error generating response:", error);
-      const errorMessage = {
-        id: messages.length + 2,
-        text: "Desculpe, ocorreu um erro ao processar sua mensagem.",
-        sender: "ai",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === aiMessageId
+            ? {
+                ...msg,
+                text: "Sorry, an error ocurred while processing the response.",
+                isStreaming: false,
+                isConnecting: false,
+              }
+            : msg
+        )
+      );
     } finally {
       setIsLoading(false);
     }
@@ -153,44 +204,45 @@ export default function LucAI() {
                       : "bg-white/10 backdrop-blur-sm border border-white/20 text-white"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.text}</p>
-                  <p className="text-xs flex justify-end mt-4">
-                    {" "}
-                    {new Date(message.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                  {message.isConnecting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <span
+                          className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                          style={{ animationDelay: "0ms" }}
+                        ></span>
+                        <span
+                          className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                          style={{ animationDelay: "150ms" }}
+                        ></span>
+                        <span
+                          className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                          style={{ animationDelay: "300ms" }}
+                        ></span>
+                      </div>
+                      <span className="text-xs text-white/50">thinking...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.text}
+                        {message.isStreaming && (
+                          <span className="inline-block w-2 h-4 ml-1 bg-white/70 animate-pulse" />
+                        )}
+                      </p>
+                      {!message.isStreaming && !message.isConnecting && (
+                        <p className="text-xs flex justify-end mt-4 text-white/50">
+                          {new Date(message.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             ))}
-
-            {isLoading && (
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-linear-to-br from-purple-500 to-pink-500">
-                  <Bot className="w-5 h-5 text-white" />
-                </div>
-                <div className="max-w-[70%] p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <span
-                        className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
-                        style={{ animationDelay: "0ms" }}
-                      ></span>
-                      <span
-                        className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
-                        style={{ animationDelay: "150ms" }}
-                      ></span>
-                      <span
-                        className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
-                        style={{ animationDelay: "300ms" }}
-                      ></span>
-                    </div>
-                    <span className="text-xs text-white/50">Digitando...</span>
-                  </div>
-                </div>
-              </div>
-            )}
 
             <div ref={messagesEndRef} />
           </main>
@@ -201,7 +253,7 @@ export default function LucAI() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Digite sua mensagem..."
+                placeholder="Ask..."
                 rows={1}
                 disabled={isLoading}
                 className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"

@@ -1,4 +1,5 @@
 const API_URL = "http://localhost:8080/v1";
+const AGENT_URL = "http://localhost:3001/v1/agent";
 
 const getAuthHeaders = (isJson = true) => {
   const token = localStorage.getItem("auth_token");
@@ -143,25 +144,60 @@ const api = {
     }
   },
 
-  async generateText(prompt) {
+  async lucAi(prompt, onChunk) {
     try {
-      const response = await fetch(`${API_URL}/api/gemini`, {
+      const response = await fetch(`${AGENT_URL}`, {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ prompt }),
       });
-      const data = await handleResponse(response);
 
-      if (data) {
-        return data;
-      } else {
-        throw new Error("Error while generating a prompt.");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("No reader available");
+      }
+
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6).trim();
+
+            if (data === "[DONE]") {
+              return;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                onChunk(parsed.content);
+              }
+            } catch (e) {
+              console.error("Error parsing SSE data:", e);
+            }
+          }
+        }
       }
     } catch (error) {
-      console.error(
-        "Detailed error while trying to generate a prompt: ",
-        error
-      );
+      console.error("Detailed error while trying to generate a prompt:", error);
       throw error;
     }
   },

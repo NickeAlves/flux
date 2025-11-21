@@ -113,51 +113,7 @@ public class IncomeService {
     }
 
     @Transactional
-    public ResponseEntity<com.api.flux.dto.response.income.IncomeResponseDTO> createIncome(CreateIncomeRequestDTO dto, UUID authenticatedUserId) {
-        try {
-            if (!dto.userId().equals(authenticatedUserId)) {
-                logger.warn("User {} attempted to create income for user {}", authenticatedUserId, dto.userId());
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(com.api.flux.dto.response.income.IncomeResponseDTO.error("You can only create incomes for yourself."));
-            }
-
-            if (!userRepository.existsById(authenticatedUserId)) {
-                logger.warn("User not found with ID: {}", authenticatedUserId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                        com.api.flux.dto.response.income.IncomeResponseDTO.userNotFound("User not found")
-                );
-            }
-
-            Income income = new Income();
-            income.setUserId(authenticatedUserId);
-            income.setTitle(TextUtils.capitalizeFirstLetters(dto.title()));
-            income.setDescription(dto.description());
-            income.setCategory(dto.category());
-            income.setAmount(dto.amount());
-            income.setTransactionDate(dto.transactionDate());
-
-            Income savedIncome = incomeRepository.save(income);
-            DataIncomeResponseDTO dataIncomeResponseDTO = IncomeMapper.toDataDTO(savedIncome);
-            balanceService.recalculateBalanceAfterTransaction(authenticatedUserId);
-
-            logger.info("Income created successfully with ID: {}", savedIncome.getId());
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    com.api.flux.dto.response.income.IncomeResponseDTO.success("Income created successfully!", dataIncomeResponseDTO)
-            );
-        } catch (IllegalArgumentException illegalArgumentException) {
-            logger.warn("Income creation validation failed: {}", illegalArgumentException.getMessage());
-            return ResponseEntity.badRequest()
-                    .body(com.api.flux.dto.response.income.IncomeResponseDTO.error(illegalArgumentException.getMessage()));
-        } catch (Exception exception) {
-            logger.error("Unexpected error during income creation: ", exception);
-            return ResponseEntity.internalServerError()
-                    .body(com.api.flux.dto.response.income.IncomeResponseDTO.error("An unexpected error occurred during income creation"));
-        }
-    }
-
-    @Transactional
-    public ResponseEntity<List<IncomeResponseDTO>> createMultipleIncomes(List<CreateIncomeRequestDTO> dtoList, UUID authenticatedUserId) {
+    public ResponseEntity<List<IncomeResponseDTO>> createIncomes(List<CreateIncomeRequestDTO> dtoList, UUID authenticatedUserId) {
         try {
             List<IncomeResponseDTO> responses = new ArrayList<>();
 

@@ -6,6 +6,9 @@ import { UUID } from "crypto";
 import Image from "next/image";
 import api from "@/services/api";
 import { Loader2, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import GridBalanceDashboard from "@/components/GridBalanceDashboard";
+import GridLastExpenses from "@/components/GridLastExpenses";
+import GridLastIncomes from "@/components/GridLastIncomes";
 
 interface UserData {
   id: UUID;
@@ -74,69 +77,101 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
-      <VerticalNavBar />
+    <>
+      <head>
+        <title>Dashboard | Flux</title>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/flux-logo.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/flux-logo.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/flux-logo.png" />
+        <meta name="msapplication-TileColor" content="#da532c" />
+        <meta name="theme-color" content="#ffffff" />
+      </head>
 
-      <div className="flex flex-col flex-1">
-        <header className="flex flex-row justify-between items-center p-6">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/flux-logo.png"
-              alt="logo-flux"
-              height={50}
-              width={50}
-            />
-            <p
-              className="text-lg font-medium text-white"
-              suppressHydrationWarning
-            >
-              Hello, {user?.name}!
-            </p>
-          </div>
-        </header>
-        <div className="flex flex-row pr-8 gap-6">
-          <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-            <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
-              <Wallet size={20} className="text-white" />
-            </div>
-
-            <div className="pt-2">
-              <p className="text-white text-xl">
-                Balance: <br />
+      <div className="flex min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
+        <VerticalNavBar />
+        <div className="flex flex-col flex-1">
+          <header className="flex flex-row justify-between items-center p-6">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/flux-logo.png"
+                alt="logo-flux"
+                height={50}
+                width={50}
+              />
+              <p
+                className="text-lg font-medium text-white"
+                suppressHydrationWarning
+              >
+                Hello, {user?.name}!
               </p>
-              <p>$ {balanceData?.currentBalance?.toFixed(2) ?? "0.00"}</p>
+            </div>
+          </header>
+          <div className="flex flex-row pr-8 gap-6">
+            <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+              <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
+                <Wallet size={20} className="text-white" />
+              </div>
+
+              <div className="pt-2">
+                <p className="text-white text-xl">
+                  Total balance: <br />
+                </p>
+                <p>
+                  ${" "}
+                  {balanceData?.currentBalance?.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                  }) ?? "00.00"}
+                </p>
+              </div>
+            </div>
+
+            <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+              <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
+                <ArrowUpCircle size={20} className="text-white" />
+              </div>
+
+              <div className="pt-2">
+                <p className="text-white text-xl">
+                  Total expenses: <br />
+                </p>
+                <p>
+                  ${" "}
+                  {balanceData?.totalExpense?.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                  }) ?? "00.00"}
+                </p>
+              </div>
+            </div>
+
+            <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+              <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
+                <ArrowDownCircle size={20} className="text-white" />
+              </div>
+
+              <div className="pt-2">
+                <p className="text-white text-xl">
+                  Total incomes: <br />
+                </p>
+                <p>
+                  ${" "}
+                  {balanceData?.totalIncome?.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                  }) ?? "00.00"}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-            <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
-              <ArrowUpCircle size={20} className="text-white" />
+          <main className="flex flex-row p-12 w-full h-full">
+            <div className="flex p-6 flex-row justify-center gap-3 w-full h-full rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+              <GridBalanceDashboard /> <GridLastExpenses /> <GridLastIncomes />
             </div>
-
-            <div className="pt-2">
-              <p className="text-white text-xl">
-                Expenses: <br />
-              </p>
-              <p>$ {balanceData?.totalExpense?.toFixed(2) ?? "0.00"}</p>
-            </div>
-          </div>
-
-          <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-            <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
-              <ArrowDownCircle size={20} className="text-white" />
-            </div>
-
-            <div className="pt-2">
-              <p className="text-white text-xl">
-                Total Incomes: <br />
-              </p>
-              <p>$ {balanceData?.totalIncome?.toFixed(2) ?? "0.00"}</p>
-            </div>
-          </div>
+          </main>
         </div>
-
-        <main className="flex flex-row p-4 pt-4 flex-1"></main>
       </div>
-    </div>
+    </>
   );
 }
