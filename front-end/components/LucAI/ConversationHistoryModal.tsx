@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Bot, User, Loader2, ChevronRight, ArrowLeft } from "lucide-react";
-import Modal from "@/components/Modal";
+import Modal from "@/components/LucAI/Modal";
 import api from "@/services/api";
 
 interface ConversationItem {

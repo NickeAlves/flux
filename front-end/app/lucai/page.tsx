@@ -5,7 +5,7 @@ import { UUID } from "crypto";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import VerticalNavBar from "@/components/VerticalNavBar";
 import api from "@/services/api";
-import LucAINavBar from "@/components/LucAINavBar";
+import LucAINavBar from "@/components/LucAI/LucAINavBar";
 
 interface userData {
   id: UUID;

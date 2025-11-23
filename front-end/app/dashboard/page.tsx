@@ -6,9 +6,7 @@ import { UUID } from "crypto";
 import Image from "next/image";
 import api from "@/services/api";
 import { Loader2, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
-import GridBalanceDashboard from "@/components/GridBalanceDashboard";
-import GridLastExpenses from "@/components/GridLastExpenses";
-import GridLastIncomes from "@/components/GridLastIncomes";
+import GridBalanceDashboard from "@/components/Dashboard/GridBalanceDashboard";
 
 interface UserData {
   id: UUID;
@@ -50,10 +48,7 @@ export default function Dashboard() {
   }, []);
 
   const [user] = useState<UserData | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
+    if (typeof window === "undefined") return null;
     const userDataString = localStorage.getItem("user");
     if (userDataString) {
       try {
@@ -68,10 +63,8 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div>
-        <div className="flex justify-center items-center py-10">
-          <Loader2 className="w-6 h-6 text-white animate-spin" />
-        </div>
+      <div className="bg-slate-900 min-h-screen flex justify-center items-center">
+        <Loader2 className="w-8 h-8 text-white animate-spin" />
       </div>
     );
   }
@@ -80,96 +73,96 @@ export default function Dashboard() {
     <>
       <head>
         <title>Dashboard | Flux</title>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/flux-logo.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/flux-logo.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/flux-logo.png" />
-        <meta name="msapplication-TileColor" content="#da532c" />
-        <meta name="theme-color" content="#ffffff" />
       </head>
 
-      <div className="flex min-h-screen bg-linear-to-br from-slate-900 to-slate-900">
+      <div className="flex min-h-screen bg-slate-900 text-white">
         <VerticalNavBar />
-        <div className="flex flex-col flex-1">
-          <header className="flex flex-row justify-between items-center p-6">
+
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <header className="flex flex-row justify-between items-center p-8">
             <div className="flex items-center gap-3">
               <Image
                 src="/flux-logo.png"
                 alt="logo-flux"
-                height={50}
-                width={50}
+                height={40}
+                width={40}
               />
               <p
-                className="text-lg font-medium text-white"
+                className="text-xl font-medium text-white"
                 suppressHydrationWarning
               >
                 Hello, {user?.name}!
               </p>
             </div>
           </header>
-          <div className="flex flex-row pr-8 gap-6">
-            <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-              <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
-                <Wallet size={20} className="text-white" />
+
+          <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="relative p-6 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl overflow-hidden group hover:bg-white/10 transition-all">
+                <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl group-hover:bg-blue-500/30 transition-all"></div>
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="p-3 bg-black/40 rounded-2xl border border-white/10">
+                    <Wallet size={24} className="text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-white/60 text-sm font-medium">
+                      Total Balance
+                    </p>
+                    <p className="text-2xl font-bold mt-1">
+                      $
+                      {balanceData?.currentBalance?.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                      }) ?? "0.00"}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="pt-2">
-                <p className="text-white text-xl">
-                  Total balance: <br />
-                </p>
-                <p>
-                  ${" "}
-                  {balanceData?.currentBalance?.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                  }) ?? "00.00"}
-                </p>
+              <div className="relative p-6 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl overflow-hidden group hover:bg-white/10 transition-all">
+                <div className="absolute -right-6 -top-6 w-32 h-32 bg-red-500/20 rounded-full blur-3xl group-hover:bg-red-500/30 transition-all"></div>
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="p-3 bg-black/40 rounded-2xl border border-white/10">
+                    <ArrowDownCircle size={24} className="text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-white/60 text-sm font-medium">
+                      Total Expenses
+                    </p>
+                    <p className="text-2xl font-bold mt-1">
+                      $
+                      {balanceData?.totalExpense?.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                      }) ?? "0.00"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative p-6 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl overflow-hidden group hover:bg-white/10 transition-all">
+                <div className="absolute -right-6 -top-6 w-32 h-32 bg-green-500/20 rounded-full blur-3xl group-hover:bg-green-500/30 transition-all"></div>
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="p-3 bg-black/40 rounded-2xl border border-white/10">
+                    <ArrowUpCircle size={24} className="text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-white/60 text-sm font-medium">
+                      Total Incomes
+                    </p>
+                    <p className="text-2xl font-bold mt-1">
+                      $
+                      {balanceData?.totalIncome?.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                      }) ?? "0.00"}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-              <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
-                <ArrowUpCircle size={20} className="text-white" />
-              </div>
-
-              <div className="pt-2">
-                <p className="text-white text-xl">
-                  Total expenses: <br />
-                </p>
-                <p>
-                  ${" "}
-                  {balanceData?.totalExpense?.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                  }) ?? "00.00"}
-                </p>
-              </div>
-            </div>
-
-            <div className="relative flex-1 pr-8 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-              <div className="absolute -top-6 left-8 bg-linear-to-br from-purple-500 to-blue-500 p-2 rounded-2xl shadow-xl border border-white/20">
-                <ArrowDownCircle size={20} className="text-white" />
-              </div>
-
-              <div className="pt-2">
-                <p className="text-white text-xl">
-                  Total incomes: <br />
-                </p>
-                <p>
-                  ${" "}
-                  {balanceData?.totalIncome?.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                  }) ?? "00.00"}
-                </p>
-              </div>
-            </div>
+            <main className="w-full rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl p-6">
+              <GridBalanceDashboard />
+            </main>
           </div>
-
-          <main className="flex flex-row p-12 w-full h-full">
-            <div className="flex p-6 flex-row justify-center gap-3 w-full h-full rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-              <GridBalanceDashboard /> <GridLastExpenses /> <GridLastIncomes />
-            </div>
-          </main>
         </div>
       </div>
     </>

@@ -20,7 +20,7 @@ export default function Modal({
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-9999">
-      <div className="bg-linear-to-br from-white/10 to-white/20 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+      <div className="bg-linear-to-br from-white/10 to-white/20 gap-4 border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-white/10 bg-white/10">
           <h2 className="text-lg font-semibold text-white">{title}</h2>
           <button

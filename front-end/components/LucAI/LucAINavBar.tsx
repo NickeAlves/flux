@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MessagesSquare, Bot } from "lucide-react";
-import ConversationHistoryModal from "@/components/ConversationHistoryModal";
+import ConversationHistoryModal from "@/components/LucAI/ConversationHistoryModal";
 
 export default function LucAINavBar() {
   const [showModal, setShowModal] = useState(false);
