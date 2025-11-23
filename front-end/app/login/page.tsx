@@ -93,12 +93,12 @@ const Login: NextPage = () => {
             }`}
           />
           <div
-            className={`absolute top-0 -right-4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-4000 ${
+            className={`absolute top-0 -right-4 w-96 h-96 bg-red-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-4000 ${
               mounted ? "-translate-x-12 translate-y-24" : ""
             }`}
           />
           <div
-            className={`absolute -bottom-8 left-20 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-3500 ${
+            className={`absolute -bottom-8 left-20 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transition-transform duration-3500 ${
               mounted ? "translate-y-12" : ""
             }`}
           />
@@ -122,8 +122,8 @@ const Login: NextPage = () => {
             }`}
           >
             <div className="relative w-20 h-20">
-              <div className="absolute inset-0 bg-linear-to-br from-purple-400 to-blue-500 rounded-3xl blur-lg opacity-60" />
-              <div className="relative w-20 h-20 bg-linear-to-br from-purple-400 to-blue-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/50 transform hover:scale-105 transition-transform duration-300">
+              <div className="absolute inset-0 rounded-3xl blur-lg opacity-60" />
+              <div className="relative w-20 h-20 rounded-3xl flex items-center justify-center">
                 <Image
                   src="/flux-logo.png"
                   alt="Flux Logo"
@@ -208,7 +208,7 @@ const Login: NextPage = () => {
                   className={`w-full py-3.5 mt-6 text-sm font-semibold text-white rounded-xl transition-all duration-300 transform ${
                     isSubmitting
                       ? "bg-white/10 cursor-not-allowed"
-                      : "bg-linear-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-purple-500/50"
+                      : "bg-linear-to-r from-red-600 to-red-600 hover:from-red-500 hover:to-red-500 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
                   }`}
                 >
                   {isSubmitting ? (

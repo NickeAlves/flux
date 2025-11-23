@@ -45,21 +45,12 @@ export default function LucAI() {
   });
 
   const [messages, setMessages] = useState<Message[]>(() => {
-    const userName = user?.name || "usuário";
-
-    const welcomeMessages = [
-      `Bem-vindo de volta, ${userName}! É ótimo ver você por aqui novamente.`,
-      `Olá, ${userName}! Pronto para cuidar das suas finanças hoje?`,
-      `Oi, ${userName}! Vamos revisar suas despesas e planejar seus próximos passos?`,
-    ];
-
-    const initialMessage =
-      welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+    const userName = user ? user.name : null;
 
     return [
       {
         id: 1,
-        text: initialMessage,
+        text: "How can I help you today" + (userName ? `, ${userName}?` : "?"),
         sender: "ai",
         timestamp: new Date(),
       },
@@ -253,7 +244,7 @@ export default function LucAI() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask..."
+                placeholder="Ask anything..."
                 rows={1}
                 disabled={isLoading}
                 className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
