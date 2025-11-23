@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -71,7 +72,7 @@ public class IncomeService {
     }
 
     public ResponseEntity<PaginatedIncomeResponseDTO<DataIncomeResponseDTO>> listIncomesByUserPaginated(
-            UUID userId, int page, int size, String sortBy, String sortDirection) {
+            UUID userId, int page, int size, String sortBy, String sortDirection, boolean lastMonth) {
         try {
             if (!userRepository.existsById(userId)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -91,7 +92,19 @@ public class IncomeService {
             }
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-            Page<Income> incomesPage = incomeRepository.findByUserId(userId, pageable);
+
+            Page<Income> incomesPage;
+
+            if (lastMonth) {
+                LocalDate endDate = LocalDate.now();
+                LocalDate startDate = endDate.minusDays(30);
+
+                incomesPage = incomeRepository.findByUserIdAndTransactionDateBetween(
+                        userId, startDate, endDate, pageable
+                );
+            } else {
+                incomesPage = incomeRepository.findByUserId(userId, pageable);
+            }
 
             Page<DataIncomeResponseDTO> incomeDTOsPage = incomesPage.map(income -> new DataIncomeResponseDTO(
                     income.getId(),

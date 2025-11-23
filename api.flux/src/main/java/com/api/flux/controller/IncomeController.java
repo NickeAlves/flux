@@ -48,9 +48,10 @@ public class IncomeController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "transactionDate") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection,
+            @RequestParam(defaultValue = "false") boolean lastMonth,
             Authentication authentication) {
         UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
-        return incomeService.listIncomesByUserPaginated(authenticatedUserId, page, size, sortBy, sortDirection);
+        return incomeService.listIncomesByUserPaginated(authenticatedUserId, page, size, sortBy, sortDirection, lastMonth);
     }
 
     @GetMapping("/{incomeId}")
