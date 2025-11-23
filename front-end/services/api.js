@@ -40,11 +40,6 @@ const handleResponse = async (response) => {
       errorMessage = data;
     }
 
-    console.error("API error: ", {
-      status: response.status,
-      data: data,
-      url: response.url,
-    });
     throw new Error(errorMessage);
   }
   return data;
@@ -59,7 +54,7 @@ const api = {
       });
       return response.ok;
     } catch (err) {
-      console.error("Error while verification:", err);
+      console.error(err);
       return false;
     }
   },
@@ -94,7 +89,6 @@ const api = {
         throw new Error(data.message || "Token not received.");
       }
     } catch (error) {
-      console.error("Detailed error in register: ", error);
       throw error;
     }
   },
@@ -116,7 +110,6 @@ const api = {
         throw new Error(data.message || "Token not received.");
       }
     } catch (error) {
-      console.error("Detailed error in login: ", error);
       throw error;
     }
   },
@@ -128,18 +121,12 @@ const api = {
       });
 
       if (!response.ok) {
-        throw new Error(
-          "Error while trying to log out: " +
-            response.status +
-            "\nMessage: " +
-            response.text
-        );
+        throw new Error("Error while trying to log out");
       }
 
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user");
     } catch (error) {
-      console.error("Detailed error in login: ", error);
       throw error;
     }
   },
@@ -170,34 +157,56 @@ const api = {
       while (true) {
         const { done, value } = await reader.read();
 
-        if (done) break;
+        if (done) {
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
-
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6).trim();
+          const trimmedLine = line.trim();
 
-            if (data === "[DONE]") {
-              return;
-            }
+          if (!trimmedLine || !trimmedLine.startsWith("data:")) {
+            continue;
+          }
 
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.content) {
-                onChunk(parsed.content);
-              }
-            } catch (e) {
-              console.error("Error parsing SSE data:", e);
+          const data = trimmedLine.replace(/^data:\s*/, "").trim();
+
+          if (data === "[DONE]") {
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) {
+              onChunk(parsed.content);
             }
+          } catch (e) {
+            console.error("Error parsing JSON chunk:", e);
+          }
+        }
+      }
+
+      if (buffer.trim()) {
+        const remainingLines = buffer.split("\n");
+        for (const line of remainingLines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine || !trimmedLine.startsWith("data:")) continue;
+
+          const data = trimmedLine.replace(/^data:\s*/, "").trim();
+          if (data === "[DONE]") return;
+
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) onChunk(parsed.content);
+          } catch (e) {
+            console.error("Error parsing JSON chunk:", e);
           }
         }
       }
     } catch (error) {
-      console.error("Detailed error while trying to generate a prompt:", error);
       throw error;
     }
   },
@@ -216,10 +225,7 @@ const api = {
         throw new Error("Error while get conversation history.");
       }
     } catch (error) {
-      console.error(
-        "Detailed error while trying to get conversation history: ",
-        error
-      );
+      console.error(error);
     }
   },
 
@@ -233,19 +239,10 @@ const api = {
       const data = await handleResponse(response);
 
       if (!data) {
-        throw new Error(
-          "Error while trying to get current balance: " +
-            response.status +
-            "\nMessage: " +
-            response.text
-        );
+        throw new Error("Error while trying to get current balance");
       }
       return data.data;
     } catch (error) {
-      console.error(
-        "Detailed error while trying to get current balance: ",
-        error
-      );
       throw error;
     }
   },

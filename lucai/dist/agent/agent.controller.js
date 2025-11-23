@@ -42,15 +42,15 @@ let AgentController = class AgentController {
             for await (const chunk of stream) {
                 const content = chunk.choices[0]?.delta?.content || '';
                 if (content) {
-                    res.write(`data: ${JSON.stringify({ content })}\\n\\n`);
+                    res.write(`data: ${JSON.stringify({ content })}\n\n`);
                 }
             }
-            res.write('data: [DONE]\\n\\n');
+            res.write('data: [DONE]\n\n');
             res.end();
         }
         catch (error) {
             console.error('Streaming error:', error);
-            res.write(`data: ${JSON.stringify({ error: 'Stream failed' })}\\n\\n`);
+            res.write(`data: ${JSON.stringify({ error: 'Stream failed' })}\n\n`);
             res.end();
         }
     }

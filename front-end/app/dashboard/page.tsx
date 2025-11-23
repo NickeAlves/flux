@@ -90,7 +90,7 @@ export default function Dashboard() {
         <meta name="theme-color" content="#ffffff" />
       </head>
 
-      <div className="flex min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="flex min-h-screen bg-linear-to-br from-slate-900 to-slate-900">
         <VerticalNavBar />
         <div className="flex flex-col flex-1">
           <header className="flex flex-row justify-between items-center p-6">

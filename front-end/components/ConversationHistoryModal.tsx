@@ -170,7 +170,7 @@ export default function ConversationHistoryModal({
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex justify-center items-center">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-red-500 to-red-500 flex justify-center items-center">
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <p className="text-white text-sm bg-white/10 p-3 rounded-lg whitespace-pre-line">

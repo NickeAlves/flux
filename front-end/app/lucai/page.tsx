@@ -27,40 +27,51 @@ interface Message {
 }
 
 export default function LucAI() {
-  const [user] = useState<userData | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
+  const [isMounted, setIsMounted] = useState(false);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const [user] = useState<userData | null>(() => {
+    if (typeof window === "undefined") return null;
     const userDataString = localStorage.getItem("user");
     if (userDataString) {
       try {
         return JSON.parse(userDataString);
       } catch (error) {
-        console.error("Error parsing user data:", error);
+        console.error("Error parsing user data from localStorage:", error);
         return null;
       }
     }
     return null;
   });
 
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const userName = user ? user.name : null;
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 1,
+      text: "How can I help you today?",
+      sender: "ai",
+      timestamp: new Date(),
+    },
+  ]);
 
-    return [
-      {
-        id: 1,
-        text: "How can I help you today" + (userName ? `, ${userName}?` : "?"),
-        sender: "ai",
-        timestamp: new Date(),
-      },
-    ];
-  });
+  useEffect(() => {
+    if (user?.name) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === 1
+            ? { ...msg, text: `How can I help you today, ${user.name}?` }
+            : msg
+        )
+      );
+    }
+  }, [user]);
 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const streamingTextRef = useRef<string>("");
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -86,6 +97,8 @@ export default function LucAI() {
     setIsLoading(true);
 
     const aiMessageId = Date.now() + 1;
+    streamingTextRef.current = "";
+
     const aiMessage: Message = {
       id: aiMessageId,
       text: "",
@@ -98,48 +111,45 @@ export default function LucAI() {
     setMessages((prev) => [...prev, aiMessage]);
 
     try {
-      let firstChunkReceived = false;
-
       await api.lucAi(currentInput, (chunk: string) => {
-        if (!firstChunkReceived) {
-          firstChunkReceived = true;
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === aiMessageId
-                ? {
-                    ...msg,
-                    isConnecting: false,
-                    isStreaming: true,
-                    text: chunk,
-                  }
-                : msg
-            )
-          );
-        } else {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === aiMessageId ? { ...msg, text: msg.text + chunk } : msg
-            )
-          );
-        }
+        streamingTextRef.current += chunk;
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMessageId
+              ? {
+                  ...msg,
+                  isConnecting: false,
+                  isStreaming: true,
+                  text: streamingTextRef.current,
+                }
+              : msg
+          )
+        );
       });
 
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === aiMessageId
-            ? { ...msg, isStreaming: false, isConnecting: false }
-            : msg
-        )
-      );
-    } catch (error) {
-      console.error("Error generating response:", error);
+      const finalResponse = streamingTextRef.current;
 
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === aiMessageId
             ? {
                 ...msg,
-                text: "Sorry, an error ocurred while processing the response.",
+                isStreaming: false,
+                isConnecting: false,
+                text: finalResponse,
+              }
+            : msg
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === aiMessageId
+            ? {
+                ...msg,
+                text: "Sorry, an error occurred while processing the response.",
                 isStreaming: false,
                 isConnecting: false,
               }
@@ -148,6 +158,7 @@ export default function LucAI() {
       );
     } finally {
       setIsLoading(false);
+      streamingTextRef.current = "";
     }
   };
 
@@ -158,8 +169,10 @@ export default function LucAI() {
     }
   };
 
+  if (!isMounted) return null;
+
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="flex min-h-screen bg-linear-to-br from-slate-900 to-slate-900">
       <VerticalNavBar />
       <div className="flex flex-col w-full max-w-5xl mx-auto p-8">
         <div className="flex flex-col h-[90vh] backdrop-blur-2xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl overflow-visible">
@@ -178,8 +191,8 @@ export default function LucAI() {
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                     message.sender === "ai"
-                      ? "bg-linear-to-br from-purple-500 to-pink-500"
-                      : "bg-linear-to-br from-blue-500 to-cyan-500"
+                      ? "bg-linear-to-br from-blue-500 to-red-500"
+                      : "bg-black/10 border border-white/20"
                   }`}
                 >
                   {message.sender === "ai" ? (
@@ -189,14 +202,14 @@ export default function LucAI() {
                   )}
                 </div>
                 <div
-                  className={`max-w-[70%] p-4 rounded-2xl ${
+                  className={`max-w-[70%] p-4 rounded-2xl min-h-14 ${
                     message.sender === "user"
-                      ? "bg-linear-to-br from-blue-500 to-cyan-500 text-white"
+                      ? "bg-white/10 text-white border border-white/20"
                       : "bg-white/10 backdrop-blur-sm border border-white/20 text-white"
                   }`}
                 >
                   {message.isConnecting ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 h-full">
                       <div className="flex gap-1">
                         <span
                           className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
@@ -218,7 +231,7 @@ export default function LucAI() {
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
                         {message.text}
                         {message.isStreaming && (
-                          <span className="inline-block w-2 h-4 ml-1 bg-white/70 animate-pulse" />
+                          <span className="inline-block w-2 h-4 ml-1 bg-white/70 animate-pulse align-middle" />
                         )}
                       </p>
                       {!message.isStreaming && !message.isConnecting && (
@@ -234,7 +247,6 @@ export default function LucAI() {
                 </div>
               </div>
             ))}
-
             <div ref={messagesEndRef} />
           </main>
 
@@ -247,12 +259,12 @@ export default function LucAI() {
                 placeholder="Ask anything..."
                 rows={1}
                 disabled={isLoading}
-                className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-1 focus:ring-white/10 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                className="w-12 h-12 rounded-xl bg-linear-to-br from-red-500 to-red-500 flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 text-white animate-spin" />

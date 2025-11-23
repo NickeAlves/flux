@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function GoogleCalendar() {
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="flex min-h-screen bg-linear-to-br from-slate-900 to-slate-900">
       <VerticalNavBar />
 
       <header className="flex items-center p-6 relative z-50">

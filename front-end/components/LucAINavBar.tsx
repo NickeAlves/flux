@@ -12,7 +12,7 @@ export default function LucAINavBar() {
       <div className="w-full relative z-50">
         <nav className="flex flex-row justify-between items-center p-1">
           <div className="flex flex-row items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-red-500 flex items-center justify-center">
               <Bot className="w-6 h-6 text-white" />
             </div>
             <p className="text-xl font-semibold text-white">LucAI</p>
