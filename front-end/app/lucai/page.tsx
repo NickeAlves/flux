@@ -47,26 +47,7 @@ export default function LucAI() {
     return null;
   });
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "How can I help you today?",
-      sender: "ai",
-      timestamp: new Date(),
-    },
-  ]);
-
-  useEffect(() => {
-    if (user?.name) {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === 1
-            ? { ...msg, text: `How can I help you today, ${user.name}?` }
-            : msg
-        )
-      );
-    }
-  }, [user]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -181,73 +162,91 @@ export default function LucAI() {
           </header>
 
           <main className="flex-1 overflow-y-auto p-6 space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex items-start gap-3 ${
-                  message.sender === "user" ? "flex-row-reverse" : "flex-row"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                    message.sender === "ai"
-                      ? "bg-linear-to-br from-blue-500 to-red-500"
-                      : "bg-black/10 border border-white/20"
-                  }`}
-                >
-                  {message.sender === "ai" ? (
-                    <Bot className="w-5 h-5 text-white" />
-                  ) : (
-                    <User className="w-5 h-5 text-white" />
-                  )}
-                </div>
-                <div
-                  className={`max-w-[70%] p-4 rounded-2xl min-h-14 ${
-                    message.sender === "user"
-                      ? "bg-white/10 text-white border border-white/20"
-                      : "bg-white/10 backdrop-blur-sm border border-white/20 text-white"
-                  }`}
-                >
-                  {message.isConnecting ? (
-                    <div className="flex items-center gap-2 h-full">
-                      <div className="flex gap-1">
-                        <span
-                          className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
-                          style={{ animationDelay: "0ms" }}
-                        ></span>
-                        <span
-                          className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
-                          style={{ animationDelay: "150ms" }}
-                        ></span>
-                        <span
-                          className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
-                          style={{ animationDelay: "300ms" }}
-                        ></span>
-                      </div>
-                      <span className="text-xs text-white/50">thinking...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {message.text}
-                        {message.isStreaming && (
-                          <span className="inline-block w-2 h-4 ml-1 bg-white/70 animate-pulse align-middle" />
-                        )}
-                      </p>
-                      {!message.isStreaming && !message.isConnecting && (
-                        <p className="text-xs flex justify-end mt-4 text-white/50">
-                          {new Date(message.timestamp).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      )}
-                    </>
-                  )}
-                </div>
+            {messages.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-white/40">
+                <Bot className="w-16 h-16 mb-4 opacity-50" />
+                <h2 className="text-xl font-medium">
+                  How can I help you today{user?.name ? `, ${user.name}` : ""}?
+                </h2>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex items-start gap-3 ${
+                      message.sender === "user"
+                        ? "flex-row-reverse"
+                        : "flex-row"
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        message.sender === "ai"
+                          ? "bg-linear-to-br from-blue-500 to-red-500"
+                          : "bg-black/10 border border-white/20"
+                      }`}
+                    >
+                      {message.sender === "ai" ? (
+                        <Bot className="w-5 h-5 text-white" />
+                      ) : (
+                        <User className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div
+                      className={`max-w-[70%] p-4 rounded-2xl min-h-14 ${
+                        message.sender === "user"
+                          ? "bg-white/10 text-white border border-white/20"
+                          : "bg-white/10 backdrop-blur-sm border border-white/20 text-white"
+                      }`}
+                    >
+                      {message.isConnecting ? (
+                        <div className="flex items-center gap-2 h-full">
+                          <div className="flex gap-1">
+                            <span
+                              className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                              style={{ animationDelay: "0ms" }}
+                            ></span>
+                            <span
+                              className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                              style={{ animationDelay: "150ms" }}
+                            ></span>
+                            <span
+                              className="w-2 h-2 bg-white/70 rounded-full animate-bounce"
+                              style={{ animationDelay: "300ms" }}
+                            ></span>
+                          </div>
+                          <span className="text-xs text-white/50">
+                            thinking...
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {message.text}
+                            {message.isStreaming && (
+                              <span className="inline-block w-2 h-4 ml-1 bg-white/70 animate-pulse align-middle" />
+                            )}
+                          </p>
+                          {!message.isStreaming && !message.isConnecting && (
+                            <p className="text-xs flex justify-end mt-4 text-white/50">
+                              {new Date(message.timestamp).toLocaleTimeString(
+                                [],
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </>
+            )}
           </main>
 
           <div className="p-6 border-t border-white/20 bg-white/5">
