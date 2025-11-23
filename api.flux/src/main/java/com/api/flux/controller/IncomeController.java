@@ -43,7 +43,7 @@ public class IncomeController {
     }
 
     @GetMapping
-    public ResponseEntity<PaginatedIncomeResponseDTO<DataIncomeResponseDTO>> listMyIncomes(
+    public ResponseEntity<PaginatedIncomeResponseDTO<DataIncomeResponseDTO>> getMyIncomes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "transactionDate") String sortBy,

@@ -145,8 +145,6 @@ export default function GridBalanceDashboard() {
     let currentVirtualBalance = balance.currentBalance * 0.4;
 
     for (let i = 0; i < 12; i++) {
-      const monthProgress = (i + 1) / 12;
-
       const income = (balance.totalIncome / 12) * (0.8 + Math.random() * 0.4);
       const expense = (balance.totalExpense / 12) * (0.8 + Math.random() * 0.4);
 
@@ -268,7 +266,7 @@ export default function GridBalanceDashboard() {
 
         <div className="flex flex-col gap-4 w-full lg:w-[300px] shrink-0">
           <div className="bg-linear-to-br from-white/5 to-transparent rounded-2xl p-5 border border-white/5 flex-1 flex flex-col justify-center hover:border-white/10 transition-colors">
-            <p className="text-white/50 text-xs uppercase tracking-wider font-semibold mb-2">
+            <p className="text-white/50 text-xs tracking-wider font-semibold mb-2">
               Average Income
             </p>
             <div className="flex items-baseline gap-1">
@@ -284,7 +282,7 @@ export default function GridBalanceDashboard() {
           </div>
 
           <div className="bg-linear-to-br from-white/5 to-transparent rounded-2xl p-5 border border-white/5 flex-1 flex flex-col justify-center hover:border-white/10 transition-colors">
-            <p className="text-white/50 text-xs uppercase tracking-wider font-semibold mb-2">
+            <p className="text-white/50 text-xs tracking-wider font-semibold mb-2">
               Average Expense
             </p>
             <div className="flex items-baseline gap-1">
@@ -300,7 +298,7 @@ export default function GridBalanceDashboard() {
           </div>
 
           <div className="bg-linear-to-br from-blue-500/10 to-transparent rounded-2xl p-5 border border-blue-500/20 flex-1 flex flex-col justify-center hover:border-blue-500/30 transition-colors">
-            <p className="text-blue-200/70 text-xs uppercase tracking-wider font-semibold mb-2">
+            <p className="text-blue-200/70 text-xs tracking-wider font-semibold mb-2">
               Net Monthly
             </p>
             <div className="flex items-baseline gap-1">

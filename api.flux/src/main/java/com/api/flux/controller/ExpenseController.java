@@ -43,15 +43,17 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseResponseDTO>> listMyExpenses(
+    public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseResponseDTO>> getMyExpenses(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "transactionDate") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection,
+            @RequestParam(defaultValue = "false") boolean lastMonth,
             Authentication authentication) {
         UUID authenticatedUserId = GetUserIdFromAuth.getId(authentication);
-        return expenseService.listExpensesByUserPaginated(authenticatedUserId, page, size, sortBy, sortDirection);
+        return expenseService.listExpensesByUserPaginated(authenticatedUserId, page, size, sortBy, sortDirection, lastMonth);
     }
+
 
     @GetMapping("/{expenseId}")
     public ResponseEntity<ExpenseResponseDTO> getExpenseById(

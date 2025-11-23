@@ -22,6 +22,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Service
@@ -73,7 +75,7 @@ public class ExpenseService {
     }
 
     public ResponseEntity<PaginatedExpenseResponseDTO<DataExpenseResponseDTO>> listExpensesByUserPaginated(
-            UUID userId, int page, int size, String sortBy, String sortDirection) {
+            UUID userId, int page, int size, String sortBy, String sortDirection, boolean lastMonth) {
         try {
             if (!userRepository.existsById(userId)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -93,7 +95,19 @@ public class ExpenseService {
             }
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-            Page<Expense> expensesPage = expenseRepository.findByUserId(userId, pageable);
+
+            Page<Expense> expensesPage;
+
+            if (lastMonth) {
+                LocalDate endDate = LocalDate.now();
+                LocalDate startDate = endDate.minusDays(30);
+
+                expensesPage = expenseRepository.findByUserIdAndTransactionDateBetween(
+                        userId, startDate, endDate, pageable
+                );
+            } else {
+                expensesPage = expenseRepository.findByUserId(userId, pageable);
+            }
 
             Page<DataExpenseResponseDTO> expenseDTOsPage = expensesPage.map(expense -> new DataExpenseResponseDTO(
                     expense.getId(),
@@ -113,6 +127,7 @@ public class ExpenseService {
                     .body(PaginatedExpenseResponseDTO.error("Internal server error occurred while retrieving expenses"));
         }
     }
+
 
     @Transactional
     public ResponseEntity<List<ExpenseResponseDTO>> createExpenses(List<CreateExpenseRequestDTO> dtoList, UUID authenticatedUserId) {

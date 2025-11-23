@@ -7,6 +7,7 @@ import Image from "next/image";
 import api from "@/services/api";
 import { Loader2, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import GridBalanceDashboard from "@/components/Dashboard/GridBalanceDashboard";
+import GridLastExpensesAndIncomes from "@/components/Dashboard/GridLastExpensesAndIncomes";
 
 interface UserData {
   id: UUID;
@@ -159,9 +160,12 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <main className="w-full rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl p-6">
+            <div className="w-full rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl p-6">
               <GridBalanceDashboard />
-            </main>
+            </div>
+            <div>
+              <GridLastExpensesAndIncomes />
+            </div>
           </div>
         </div>
       </div>

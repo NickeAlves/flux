@@ -246,6 +246,44 @@ const api = {
       throw error;
     }
   },
+
+  async listIncomesByUserID() {
+    try {
+      const response = await fetch(`${API_URL}/incomes`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      });
+
+      const data = await handleResponse(response);
+
+      if (!data) {
+        throw new Error("Error while trying to get incomes");
+      }
+      return data.content;
+    } catch (error) {
+      console.error("Error whhile trying to ger incomes, details: " + error);
+      throw error;
+    }
+  },
+
+  async listExpensesByUserID() {
+    try {
+      const response = await fetch(`${API_URL}/expenses`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      });
+
+      const data = await handleResponse(response);
+
+      if (!data) {
+        throw new Error("Error while trying to get expenses");
+      }
+      return data.content;
+    } catch (error) {
+      console.error("Error whhile trying to ger expenses, details: " + error);
+      throw error;
+    }
+  },
 };
 
 export default api;
