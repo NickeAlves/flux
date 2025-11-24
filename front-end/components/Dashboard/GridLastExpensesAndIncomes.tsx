@@ -155,7 +155,7 @@ export default function GridLastExpensesAndIncomes() {
                   <p className="text-center">
                     {formatDate(expense.transactionDate)}
                   </p>
-                  <p className="text-right text-green-400 font-medium">
+                  <p className="text-right text-red-400 font-medium">
                     {formatAmount(expense.amount)}
                   </p>
                 </div>
