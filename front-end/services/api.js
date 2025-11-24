@@ -261,7 +261,7 @@ const api = {
       }
       return data.content;
     } catch (error) {
-      console.error("Error whhile trying to ger incomes, details: " + error);
+      console.error("Error while trying to ger incomes, details: " + error);
       throw error;
     }
   },
@@ -281,6 +281,50 @@ const api = {
       return data.content;
     } catch (error) {
       console.error("Error whhile trying to ger expenses, details: " + error);
+      throw error;
+    }
+  },
+
+  async getLastMonthExpenses() {
+    try {
+      const response = await fetch(
+        `${API_URL}/expenses?page=0&size=10&sortBy=transactionDate&sortDirection=desc&lastMonth=true`,
+        {
+          method: "GET",
+          headers: getAuthHeaders(),
+        }
+      );
+
+      const data = await handleResponse(response);
+
+      if (!data) {
+        throw new Error("Error while trying to get last month expenses.");
+      }
+      return data.content;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+
+  async getLastMonthIncomes() {
+    try {
+      const response = await fetch(
+        `${API_URL}/incomes?page=0&size=10&sortBy=transactionDate&sortDirection=desc&lastMonth=true`,
+        {
+          method: "GET",
+          headers: getAuthHeaders(),
+        }
+      );
+
+      const data = await handleResponse(response);
+
+      if (!data) {
+        throw new Error("Error while trying to get last month incomes.");
+      }
+      return data.content;
+    } catch (error) {
+      console.error(error);
       throw error;
     }
   },
