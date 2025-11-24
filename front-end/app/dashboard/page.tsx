@@ -76,7 +76,7 @@ export default function Dashboard() {
         <title>Dashboard | Flux</title>
       </head>
 
-      <div className="flex min-h-screen bg-slate-900 text-white">
+      <div className="flex min-h-screen bg-slate-900 pt-12 text-white">
         <VerticalNavBar />
 
         <div className="flex flex-col flex-1 overflow-hidden">

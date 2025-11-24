@@ -109,7 +109,7 @@ export default function GridLastExpensesAndIncomes() {
               <h1 className="text-center">Date</h1>
               <h1 className="text-right">Value</h1>
             </div>
-            <div className="flex flex-col text-sm tracking-tight text-white gap-2 mt-2">
+            <div className="flex flex-col text-lg font-bold tracking-tight text-white  gap-2 mt-2">
               {incomeData.map((income) => (
                 <div
                   key={income.id}
@@ -142,7 +142,7 @@ export default function GridLastExpensesAndIncomes() {
               <h1 className="text-center">Date</h1>
               <h1 className="text-right">Value</h1>
             </div>
-            <div className="flex flex-col text-sm tracking-tight text-white gap-2 mt-2">
+            <div className="flex flex-col text-lg font-bold tracking-tight text-white gap-2 mt-2">
               {expenseData.map((expense) => (
                 <div
                   key={expense.id}
