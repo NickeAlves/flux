@@ -8,18 +8,45 @@ export class AgentService {
   constructor() {
     this.client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      baseURL: process.env.API_URL,
     });
   }
 
-  async generateStream(prompt: string, instructions: string) {
+  async chatWithFunctions(messages: any[]) {
     return this.client.chat.completions.create({
-      model: 'gpt-4.1-mini',
-      messages: [
-        { role: 'system', content: instructions },
-        { role: 'user', content: prompt },
+      model: 'gpt-4.1',
+      messages: messages,
+      functions: [
+        {
+          name: 'createExpense',
+          description: 'Create a new expense.',
+          parameters: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              category: { type: 'string' },
+              amount: { type: 'number' },
+              transactionDate: { type: 'string', format: 'date-time' },
+              description: { type: 'string' },
+            },
+            required: ['title', 'category', 'amount', 'transactionDate'],
+          },
+        },
+        {
+          name: 'createIncome',
+          description: 'Create a new income.',
+          parameters: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              category: { type: 'string' },
+              amount: { type: 'number' },
+              transactionDate: { type: 'string', format: 'date-time' },
+              description: { type: 'string' },
+            },
+            required: ['title', 'category', 'amount', 'transactionDate'],
+          },
+        },
       ],
-      stream: true,
     });
   }
 }

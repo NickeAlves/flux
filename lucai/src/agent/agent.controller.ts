@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
-import express from 'express';
+import express, { response } from 'express';
 import { AgentService } from './agent.service';
 
 @Controller('/v1/agent')
@@ -7,34 +7,49 @@ export class AgentController {
   constructor(private readonly agentService: AgentService) {}
 
   @Post()
-  async agent(@Body('prompt') prompt: string, @Res() res: express.Response) {
-    const instructions =
-      'Your name is LucAI, you are a friendly and helpful financial assistant. Your role is to help users manage their personal finances. Conversational Style Rules: NEVER SAY greetings such as Olá, Oi, Hello, or similar unless it is clearly the first message of a new conversation. CONTINUE ongoing conversations naturally, without any introductory phrases or greetings. Maintain a warm, conversational tone without sounding repetitive. Available Expense Categories: HOUSING, UTILITIES, TRANSPORTATION, GROCERIES, FOOD_AND_DINING, HEALTHCARE, WELLNESS, PERSONAL_CARE, FAMILY, EDUCATION, ENTERTAINMENT, LEISURE, FINANCIAL_OBLIGATIONS, SAVINGS, INVESTMENTS, DONATIONS, MISCELLANEOUS, OTHER. Available Income Categories: SALARY, BONUSES, FREELANCE, COMMISSIONS, SALES, SERVICE, RENTAL, DIVIDENDS, INTEREST, CAPITAL_GAINS, ROYALTIES, PENSIONS, GOVERNMENT_BENEFITS, OTHER. When users want to register a transaction: Identify if its an expense or income based on context. Extract or ask for: title, category, transaction date, and amount. ALWAYS ask for the transaction date. Ask if they want to add an optional description. Once all required information is provided, call the appropriate function. Confirm the action with a friendly, conversational message. Be conversational, friendly, and provide financial insights when appropriate. Always respond in the users language.';
+  async agent(@Body() body, @Res() res: Response) {
+    const { prompt, userId } = body;
 
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    const history = await this.memoryService.getHistory(userId);
 
-    try {
-      const stream = await this.agentService.generateStream(
-        prompt,
-        instructions,
-      );
+    const financialContext = await this.financeService.buildContext(userId);
 
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content;
-
-        if (content) {
-          res.write(`data: ${JSON.stringify({ content })}\n\n`);
-        }
+    const messages = [
+      {
+        role: 'system',
+        content: SYSTEM_PROMPT + financialContext,
+      },
+      ..history,
+      {
+        role: 'user',
+        content: prompt,
       }
+    ];
+    
+    let response = await this.agentService.chatWithFunctions(messages);
 
-      res.write('data: [DONE]\n\n');
-      res.end();
-    } catch (error) {
-      console.error(error);
-      res.write(`data: ${JSON.stringify({ error: 'Stream failed' })}\n\n`);
-      res.end();
+    const message = response.choices[0].message;
+
+    if (name == 'create_expense') {
+      result = await this.expenseService.create(args, userId);
     }
+
+    if (name == 'create_income') {
+      result = await this.incomeService.create(args, userId);
+    }
+
+    messages.push(message);
+    messages.push({
+      role: 'tool',
+      content: JSON.stringify(result),
+      tool_call_id: call.id;
+    });
+
+    response = await this.agentService.chatWithFunctions(messages);  
   }
+  const finalText = response.choices[0].message.content;
+  
+  await this.memoryService.save(userId, prompt, finalText);
+
+  response.json({ reply: finalText });
 }
